@@ -72,7 +72,6 @@ import tv.own.owntv.features.shell.components.RailCategory
 import tv.own.owntv.features.shell.components.SettingsScreen
 import tv.own.owntv.features.shell.components.Sidebar
 import tv.own.owntv.features.shell.components.SolidAmbientBackdrop
-import tv.own.owntv.features.shell.components.TopBar
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import androidx.compose.ui.res.stringResource
@@ -471,9 +470,6 @@ fun OwnTVShell(
     // between/around panels. Solid otherwise — the usual near-black base.
     val glass = LocalGlass.current
     val shellBase = if (glass.isGlassy(GlassSurface.PANELS) || glass.isGlassy(GlassSurface.SIDEBAR)) Color.Transparent else colors.background
-    // Keep the navigation plate aligned with the content below the same dynamic top bar: compact during
-    // normal browsing, and restored to the taller reservation while Audio Mode shows its player controls.
-    val shellTopBarHeight = if (playerMode == PlayerMode.AUDIO) Dimens.TopBarHeight else Dimens.TopBarCompactHeight
 
     CompositionLocalProvider(LocalContentScrolled provides contentScrolled) {
     Box(modifier = modifier.fillMaxSize().background(shellBase)) {
@@ -481,129 +477,26 @@ fun OwnTVShell(
       if (playerMode != PlayerMode.FULLSCREEN) {
         Column(modifier = Modifier.fillMaxSize()) {
           if (isOffline) OfflineBanner()
-          Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            Sidebar(
-                selected = selectedSection,
-                onSelect = { section ->
-                    if (trendingSearchActive || section == MainSection.SEARCH) {
-                        searchVm.setQuery("")
-                        trendingSearchActive = false
-                        restoreTrendingSearchFocus = false
-                    }
-                    onSelectSection(section)
-                },
-                visibleSections = visibleSections,
-                avatarId = avatarId,
-                onPickAvatar = { showAvatarPicker = true },
-                profileName = profileName,
-                sourceSummary = sourceSummary,
-                onSwitchProfile = onSwitchProfile,
-                selectedItemFocusRequester = sidebarFocus,
-                onFocused = { focusedLayer = ShellLayer.SIDEBAR },
-                topInset = shellTopBarHeight,
-            )
-
+          // The rail now overlays the content instead of sharing a Row with it: content always keeps
+          // a constant left inset equal to the COLLAPSED rail width, so nothing shifts or resizes when
+          // the rail expands on focus — it just floats on top, translucent, with the content dimming
+          // slightly underneath it while expanded.
+          Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             Column(
                 modifier = Modifier
-                    .weight(1f)
                     .fillMaxSize()
+                    .padding(start = Dimens.SidebarWidthCollapsed)
                     // Phase 6 — unified panel surface: panels and content area share #102520 so the
                     // rounded borders define regions on one continuous dark-green surface.
                     // Glass effect: transparent here (shellBase) when a background image is active, so
                     // the image shows through the gaps between the content panels.
                     .background(shellBase),
             ) {
-                // Phase 5 — top bar above the content (active section + Search pill + clock + playlist).
-                // Shown on EVERY section now, including Settings ("top bar same for all").
-                TopBar(
-                    sectionLabel = stringResource(selectedSection.labelRes),
-                    onSearchClick = {
-                        searchVm.setQuery("")
-                        trendingSearchActive = false
-                        restoreTrendingSearchFocus = false
-                        onSelectSection(MainSection.SEARCH)
-                    },
-                    // The chip reflects the active filter: "All playlists" when none is chosen (id <= 0),
-                    // the chosen playlist's name otherwise. With a single playlist there's nothing to switch,
-                    // so just show its name.
-                    playlistName = when {
-                        playlists.size <= 1 -> sourceSummary ?: noSourceLabel
-                        activePlaylistId <= 0L -> stringResource(R.string.content_all_playlists)
-                        else -> playlists.firstOrNull { it.id == activePlaylistId }?.name ?: (sourceSummary ?: noSourceLabel)
-                    },
-                    weatherInfo = weatherInfo,
-                    weatherFahrenheit = weatherFahrenheit,
-                    // The Search pill only exists while focus sits on the nav panel — inside a
-                    // section it fades out and turns unfocusable, so focus can never jump to it.
-                    searchVisible = focusedLayer == ShellLayer.SIDEBAR,
-                    // The playlist chip becomes a quick-switcher only when there's more than one to pick.
-                    playlistInteractive = playlists.size > 1,
-                    onPlaylistClick = { showPlaylistPicker = true },
-                    playlistDownFocusRequester = homeFirstRowFocus.takeIf {
-                        selectedSection == MainSection.HOME
-                    },
-                    // Batch 7 — shared "Continue" chip: one-press resume of the most-recent item.
-                    continueLabel = continueTarget?.let { target ->
-                        val action = when (target.action) {
-                            tv.own.owntv.features.home.ContinueAction.RESUME -> stringResource(R.string.content_action_resume)
-                            tv.own.owntv.features.home.ContinueAction.PLAY -> stringResource(R.string.content_action_play)
-                            tv.own.owntv.features.home.ContinueAction.NEXT_UP -> stringResource(R.string.content_action_next_up)
-                            tv.own.owntv.features.home.ContinueAction.LAST_CHANNEL -> stringResource(R.string.content_action_last_channel)
-                        }
-                        stringResource(R.string.content_continue_label, action, target.name)
-                    },
-                    continueIcon = when (continueTarget?.kind) {
-                        tv.own.owntv.features.home.ContinueKind.LIVE -> OwnTVIcon.LIVE_TV
-                        tv.own.owntv.features.home.ContinueKind.MOVIE -> OwnTVIcon.MOVIES
-                        tv.own.owntv.features.home.ContinueKind.EPISODE -> OwnTVIcon.SERIES
-                        null -> OwnTVIcon.PLAY
-                    },
-                    onContinueClick = {
-                        continueTarget?.let { t ->
-                            scope.launch {
-                                when (t.kind) {
-                                    tv.own.owntv.features.home.ContinueKind.LIVE ->
-                                        if (liveVm.ensurePlayingByIdAsync(t.channelId)) openFullscreen(MainSection.LIVE_TV)
-                                    tv.own.owntv.features.home.ContinueKind.MOVIE ->
-                                        if (movieVm.playByIdAsync(t.movieId, t.positionMs) && !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES)
-                                    tv.own.owntv.features.home.ContinueKind.EPISODE ->
-                                        if (seriesVm.playFromHomeAsync(t.seriesId, t.episodeId, t.positionMs) && !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES)
-                                }
-                            }
-                        }
-                    },
-                    // Audio Mode: the now-playing bar, left of the weather chip. Present only while
-                    // PlayerMode.AUDIO; focusable only while the nav panel holds focus (same rule as Search).
-                    audioBar = if (playerMode == PlayerMode.AUDIO) {
-                        {
-                            val isLiveStream = liveOnExo || player.isLiveContent
-                            val zapFn: ((Int) -> Unit)? = when {
-                                !isLiveStream -> null
-                                zapSource == MainSection.LIVE_TV && liveCanZap -> liveVm::zap
-                                else -> null
-                            }
-                            val audioEngine = if (liveOnExo) liveVm.previewEngine else mpvEngine
-                            val vodNav by audioEngine.nav.collectAsStateWithLifecycle()
-                            tv.own.owntv.player.AudioNowPlayingBar(
-                                player = audioEngine,
-                                isLive = isLiveStream,
-                                canPrev = if (isLiveStream) zapFn != null else vodNav.hasPrev,
-                                canNext = if (isLiveStream) zapFn != null else vodNav.hasNext,
-                                onPrev = { if (isLiveStream) zapFn?.invoke(-1) else mpvEngine.previous() },
-                                onNext = { if (isLiveStream) zapFn?.invoke(1) else mpvEngine.next() },
-                                onExpand = expandPlayer,
-                                onClose = exitPlayer,
-                                // Always reachable while Audio Mode is active (from the Search/Continue
-                                // pills on the left or the playlist chip on the right) — not gated on the
-                                // nav panel like the other chips, because its own D-pad trap keeps focus
-                                // inside once entered and Back is the only way out.
-                                focusable = true,
-                            )
-                        }
-                    } else null,
-                    leadingExtension = Dimens.SidebarWidthCollapsed,
-                )
-                Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = 0.dp, end = 6.dp, bottom = 6.dp)) {
+                // TopBar removed — its functionality (section switching, search entry) lives in the
+                // Sidebar now. NOTE: the playlist quick-switch chip, weather chip, "Continue" resume
+                // chip, and the Audio Mode now-playing bar used to live here and currently have no
+                // replacement home — see the follow-up note in chat.
+                Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = 0.dp, end = 6.dp, bottom = 6.dp, top = 6.dp)) {
                     when {
                         selectedSection == MainSection.SETTINGS -> SettingsScreen(
                             themeMode = themeMode,
@@ -793,6 +686,50 @@ fun OwnTVShell(
                     }
                 }
             }
+
+            // Scrim: darkens the content behind the rail while it's expanded, so the translucent
+            // rail reads clearly against whatever's playing underneath it (Netflix does the same
+            // thing behind its own overlay nav). Not focusable/clickable — purely visual, fades
+            // with the rail's own expand/collapse animation.
+            androidx.compose.animation.AnimatedVisibility(
+                visible = focusedLayer == ShellLayer.SIDEBAR,
+                enter = androidx.compose.animation.fadeIn(),
+                exit = androidx.compose.animation.fadeOut(),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.35f)),
+                )
+            }
+
+            Sidebar(
+                selected = selectedSection,
+                onSelect = { section ->
+                    if (trendingSearchActive || section == MainSection.SEARCH) {
+                        searchVm.setQuery("")
+                        trendingSearchActive = false
+                        restoreTrendingSearchFocus = false
+                    }
+                    onSelectSection(section)
+                },
+                visibleSections = visibleSections,
+                avatarId = avatarId,
+                onPickAvatar = { showAvatarPicker = true },
+                profileName = profileName,
+                sourceSummary = sourceSummary,
+                onSwitchProfile = onSwitchProfile,
+                onSearchClick = {
+                    searchVm.setQuery("")
+                    trendingSearchActive = false
+                    restoreTrendingSearchFocus = false
+                    onSelectSection(MainSection.SEARCH)
+                },
+                selectedItemFocusRequester = sidebarFocus,
+                onFocused = { focusedLayer = ShellLayer.SIDEBAR },
+                modifier = Modifier.align(Alignment.TopStart),
+            )
           }
         }
         // The solid-mode wizard aura is deliberately drawn after the opaque browse surfaces so it

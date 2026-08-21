@@ -57,7 +57,7 @@ enum class MainSection(@param:androidx.annotation.StringRes val labelRes: Int) {
 
     companion object {
         /** Fixed order of the browse icons in the rail (Settings is pinned separately at the bottom). */
-        val browseOrder: List<MainSection> = listOf(HOME, LIVE_TV, MOVIES, SERIES, DOWNLOADS, EPG)
+        val browseOrder: List<MainSection> = listOf(HOME, MOVIES, SERIES, LIVE_TV, EPG, DOWNLOADS)
 
         /** All six browse items — the default `visibleSections` value so the rail shows everything until
          *  the first real emission lands (avoids a cold-start flicker to an empty rail). */

@@ -103,9 +103,6 @@ import tv.own.owntv.ui.components.trapAllFocusExit
 import tv.own.owntv.ui.components.trapVerticalFocusExit
 import tv.own.owntv.ui.components.SortChip
 import tv.own.owntv.ui.components.formatCount
-import tv.own.owntv.ui.components.ContentPanelFill
-import tv.own.owntv.ui.components.PreviewPanelFill
-import tv.own.owntv.ui.components.roundedPanel
 import tv.own.owntv.ui.theme.Dimens
 import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.OwnTVTheme
@@ -315,7 +312,6 @@ fun MoviesScreen(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .roundedPanel(fillColor = ContentPanelFill)
             .padding(BrowseContainerPadding)
             .onFocusChanged { if (it.hasFocus) onChildFocused() },
     ) {
@@ -530,10 +526,17 @@ fun MoviesScreen(
         if (previewVisible) {
             Spacer(Modifier.width(BrowseColumnGap))
             Box(
+                Modifier
+                    .width(BrowseColumnDividerSpace)
+                    .fillMaxHeight()
+                    .padding(vertical = 2.dp)
+                    .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
+            )
+            Spacer(Modifier.width(BrowseColumnGap))
+            Box(
                 modifier = Modifier
                     .then(if (panels != null) Modifier.width(panels.preview) else Modifier.weight(1f))
                     .fillMaxSize()
-                    .roundedPanel(fillColor = PreviewPanelFill)
                     .padding(BrowseContainerPadding),
             ) {
                 MovieDetailsPane(

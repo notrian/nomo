@@ -185,9 +185,10 @@ fun CategoryRail(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Dimens.GapSmall),
         ) {
-            // Category-search field, only while the rail is expanded (focused). Entering the rail lands
-            // here; Down drops into the list, and the filter clears when the rail loses focus.
-            if (hasFocus) {
+            // Category-search field — disabled per redesign: the rail no longer shows a search box,
+            // even while focused. Left in place (guarded by a constant `false`) rather than deleted,
+            // since the filtering logic (`query`/`visible`) is still live and cheap to re-enable.
+            if (false && hasFocus) {
                 item(key = "__rail_search__") {
                     SearchBar(
                         query = query,

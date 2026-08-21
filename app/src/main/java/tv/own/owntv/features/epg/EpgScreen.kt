@@ -327,7 +327,6 @@ fun EpgScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .roundedPanel(fillColor = ContentPanelFill)
             // Entry from the sidebar lands on the first channel — unless a restore is pending
             // (back from playback / dialog close), which onEnter routes to instead of hijacking.
             // onEnter only fires for entries from OUTSIDE the group — search bar / refresh / back

@@ -38,8 +38,8 @@ import org.koin.androidx.compose.koinViewModel
 import tv.own.owntv.R
 import tv.own.owntv.features.settings.data.SettingsRepository
 import tv.own.owntv.features.shell.MainSection
+import tv.own.owntv.ui.components.FaNavIcon
 import tv.own.owntv.ui.components.FocusableSurface
-import tv.own.owntv.ui.components.NavDuotoneIcon
 import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.components.roundedPanel
 import tv.own.owntv.ui.theme.Dimens
@@ -162,7 +162,7 @@ private fun NavMenuRow(
                     .background(colors.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
-                NavDuotoneIcon(
+                FaNavIcon(
                     section = section,
                     color = if (shown) colors.onPrimaryContainer else colors.onPrimaryContainer.copy(alpha = 0.4f),
                     modifier = Modifier.size(22.dp),

@@ -121,7 +121,7 @@ fun DownloadsScreen(
     }
 
     Column(
-        modifier = modifier.fillMaxSize().roundedPanel(fillColor = ContentPanelFill)
+        modifier = modifier.fillMaxSize()
             // Route spatial D-pad entries to the first download row (entry from the sidebar would
             // otherwise land on whatever row is horizontally aligned). onEnter fires only for
             // directional entry from outside (internal moves don't re-trigger it).

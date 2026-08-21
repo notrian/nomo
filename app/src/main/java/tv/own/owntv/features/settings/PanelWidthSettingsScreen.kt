@@ -49,12 +49,10 @@ import tv.own.owntv.features.settings.data.BrowseColumnGap
 import tv.own.owntv.features.settings.data.BrowseColumnDividerSpace
 import tv.own.owntv.features.settings.data.BrowseContainerPadding
 import tv.own.owntv.features.settings.data.defaultPanelShares
-import tv.own.owntv.ui.components.ContentPanelFill
 import tv.own.owntv.ui.components.FocusableSurface
 import tv.own.owntv.ui.components.OwnTVButton
 import tv.own.owntv.ui.components.OwnTVButtonStyle
 import tv.own.owntv.ui.components.OwnTVIcon
-import tv.own.owntv.ui.components.PreviewPanelFill
 import tv.own.owntv.ui.components.dialogPanel
 import tv.own.owntv.ui.components.modalScrim
 import tv.own.owntv.ui.components.roundedPanel
@@ -372,16 +370,14 @@ private fun PanelWidthDialog(
     }
 }
 
-/** The browse layout users are sizing: one container, two plain columns, and a raised preview. */
+/** The browse layout users are sizing: two plain columns and a floating preview, seamed by hairlines. */
 @Composable
 private fun PanelWidthDiagram(shares: PanelShares) {
     val colors = OwnTVTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
-                .height(46.dp)
-            .clip(RoundedCornerShape(12.dp))
-                .background(ContentPanelFill)
+            .height(46.dp)
             .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -389,7 +385,7 @@ private fun PanelWidthDiagram(shares: PanelShares) {
             Modifier
                 .weight(shares.category.toFloat())
                 .fillMaxHeight()
-                .clip(RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
+                .clip(RoundedCornerShape(8.dp))
                 .background(colors.onSurface.copy(alpha = 0.035f)),
         )
         Spacer(Modifier.width(BrowseColumnGap))
@@ -410,10 +406,18 @@ private fun PanelWidthDiagram(shares: PanelShares) {
             Spacer(Modifier.width(BrowseColumnGap))
             Box(
                 Modifier
+                    .width(BrowseColumnDividerSpace)
+                    .fillMaxHeight()
+                    .padding(vertical = 2.dp)
+                    .background(colors.outlineVariant.copy(alpha = 0.35f)),
+            )
+            Spacer(Modifier.width(BrowseColumnGap))
+            Box(
+                Modifier
                     .weight(shares.preview.toFloat())
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(8.dp))
-                    .background(PreviewPanelFill),
+                    .background(colors.onSurface.copy(alpha = 0.035f)),
             )
         }
     }

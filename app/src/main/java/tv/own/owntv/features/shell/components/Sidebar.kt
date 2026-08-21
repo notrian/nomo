@@ -1,9 +1,10 @@
 package tv.own.owntv.features.shell.components
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,59 +12,57 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
+import kotlinx.coroutines.launch
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import tv.own.owntv.features.shell.MainSection
 import tv.own.owntv.R
+import tv.own.owntv.features.shell.MainSection
+import tv.own.owntv.ui.components.FaNavIcon
 import tv.own.owntv.ui.components.FocusableSurface
-import tv.own.owntv.ui.components.NavAccentBar
-import tv.own.owntv.ui.components.rememberNavLadderColors
 import tv.own.owntv.ui.components.OwnTVAvatar
-import tv.own.owntv.ui.components.NavDuotoneIcon
 import tv.own.owntv.ui.components.OwnTVIcon
-import tv.own.owntv.ui.components.RailPanelFill
-import tv.own.owntv.ui.components.roundedPanel
 import tv.own.owntv.ui.theme.Dimens
-import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.OwnTVTheme
-import tv.own.owntv.ui.theme.glass
 
 /**
- * Layer 1 — the MD3 navigation panel. A FIXED icon rail: brand logo at the top (Phase 2), the nav items
- * (browse + Settings) vertically centered in the middle (Phase 3), and the profile avatar pinned at the
- * bottom (Phase 1). The logo is display-only (not focusable); everything else is a focusable nav item.
+ * Layer 1 — the navigation rail. Netflix-style overlay: it floats ON TOP of the content (the caller
+ * lays this out in a Box above [ContentPane], so the content pane never shifts or resizes) and reads
+ * as a flush-left, translucent+blurred panel rather than a bordered card. Collapsed to icon-only when
+ * focus is elsewhere in the app; expands to icon + label (with an animated underline under the label
+ * of the focused/active row) the moment focus enters it.
  */
 @Composable
 fun Sidebar(
@@ -75,23 +74,20 @@ fun Sidebar(
     profileName: String,
     sourceSummary: String?,
     onSwitchProfile: () -> Unit,
+    onSearchClick: () -> Unit,
     selectedItemFocusRequester: FocusRequester,
     onFocused: () -> Unit,
     counts: (MainSection) -> Int = { 0 },
-    topInset: Dp = Dimens.TopBarHeight,
     modifier: Modifier = Modifier,
 ) {
     val colors = OwnTVTheme.colors
     var hasFocus by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    // Phase 2 — the nav is a FIXED icon rail: it never expands or collapses, so the layout never jumps on
-    // the D-pad. The profile avatar is pinned at the bottom (Phase 1). Full section labels live in the panes.
-    val expanded = false
-    // Phase 4 — Search left the rail for the top bar, so when Search is the active section there's no nav
-    // item to receive the entry-focus redirect below. Fall back to Home so BACK / left out of Search still
-    // lands in the rail instead of stranding focus in the content area.
-    // v4.3.0 — the selected section may also be hidden (Nav menu customization); if so, land focus on the
-    // first visible browse item (or Settings if every browse item is hidden) so the rail always has a target.
+
+    // Expands to show labels the moment focus is anywhere inside the rail; collapses to icon-only
+    // the moment focus leaves it for the content pane. No manual toggle needed.
+    val expanded = hasFocus
+
     val focusSection = when {
         selected == MainSection.SEARCH -> MainSection.HOME
         selected == MainSection.SETTINGS -> MainSection.SETTINGS
@@ -99,332 +95,419 @@ fun Sidebar(
         else -> MainSection.browseOrder.firstOrNull { it in visibleSections } ?: MainSection.SETTINGS
     }
 
-    Column(
+    val railWidth by animateDpAsState(
+        targetValue = if (expanded) Dimens.SidebarWidthExpanded else Dimens.SidebarWidthCollapsed,
+        animationSpec = tween(220),
+        label = "railWidth",
+    )
+    // Slightly transparent, frosted glass — not a bordered/rounded card, just a flat translucent
+    // plane flush to the left edge. Even lighter footprint when collapsed to icon-only.
+    val railAlpha by animateFloatAsState(
+        targetValue = if (expanded) 0.78f else 0.55f,
+        animationSpec = tween(220),
+        label = "railAlpha",
+    )
+    val blurRadius by animateDpAsState(
+        targetValue = if (expanded) 18.dp else 10.dp,
+        animationSpec = tween(220),
+        label = "railBlur",
+    )
+
+    Box(
         modifier = modifier
             .fillMaxHeight()
+            .width(railWidth)
             .onFocusChanged {
-                // D-pad focus search is spatial — entering the panel from the content area would
-                // land on whatever item happens to be horizontally aligned. Redirect every entry to
-                // the SELECTED section instead (internal up/down moves don't re-trigger this).
-                // Deferred a frame: requesting focus inside onFocusChanged is rejected mid-transaction.
                 val entered = it.hasFocus && !hasFocus
                 hasFocus = it.hasFocus
                 if (it.hasFocus) onFocused()
                 if (entered) scope.launch { runCatching { selectedItemFocusRequester.requestFocus() } }
             }
-            .focusGroup()
-            .width(Dimens.SidebarWidthCollapsed)
-            // The top bar owns the complete top strip. The plate starts below it and shares the main
-            // content panel's 6 dp bottom inset; the horizontal inset keeps the existing shell gap.
-            .padding(start = 6.dp, top = topInset, end = 6.dp, bottom = 6.dp)
-            .roundedPanel(fillColor = RailPanelFill, surface = GlassSurface.SIDEBAR)
-            // Keep the plate aligned while lowering the logo slightly inside it.
-            .padding(top = 12.dp, bottom = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .focusGroup(),
     ) {
-        // Phase 2 — brand mark pinned at the top of the rail. Non-focusable, so D-pad entry into the
-        // panel still redirects to the selected nav item below (see onFocusChanged) — it can't trap
-        // an "up" press from the first nav item either.
-        AppLogo()
-        Spacer(Modifier.height(12.dp))
-
-        // Phase 3 — the nav is vertically centered between the logo and the profile, BUT the rail
-        // scrolls when UI zoom makes the fixed item list taller than the panel (otherwise the top/bottom
-        // items get clipped and become unreachable). A scrollable Box with Center alignment centers the
-        // nav when it fits and pans through it when it overflows; Compose brings each item into view as
-        // D-pad focus moves to it.
+        // Backdrop layer — ONLY this is blurred/translucent. Compose's blur() affects everything
+        // drawn inside its modifier chain, so the icons/text must live in a separate sibling
+        // (below) rather than inside this same Column, or the whole rail (including the text)
+        // would blur along with the background.
         Box(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            contentAlignment = Alignment.Center,
+                .fillMaxSize()
+                .blur(blurRadius)
+                .background(colors.background.copy(alpha = railAlpha)),
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (expanded) {
-                SectionLabel(stringResource(R.string.common_browse))
-                Spacer(Modifier.height(4.dp))
+            AppLogo(expanded = expanded)
+            Spacer(Modifier.height(16.dp))
+
+            SearchEntry(expanded = expanded, onClick = onSearchClick)
+            Spacer(Modifier.height(18.dp))
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    MainSection.browseOrder.filter { it in visibleSections }.forEach { section ->
+                        NavItem(
+                            label = stringResource(section.labelRes),
+                            section = section,
+                            active = section == selected,
+                            expanded = expanded,
+                            onClick = { onSelect(section) },
+                            modifier = if (section == focusSection) {
+                                Modifier.focusRequester(selectedItemFocusRequester)
+                            } else Modifier,
+                        )
+                        Spacer(Modifier.height(2.dp))
+                    }
+                }
             }
 
-            Column(modifier = Modifier.fillMaxWidth()) {
-                MainSection.browseOrder.filter { it in visibleSections }.forEach { section ->
-                    NavItem(
-                        section = section,
-                        active = section == selected,
-                        expanded = expanded,
-                        count = counts(section),
-                        onClick = { onSelect(section) },
-                        modifier = if (section == focusSection) {
-                            Modifier.focusRequester(selectedItemFocusRequester)
-                        } else Modifier,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                }
-                // Settings closes out the nav block.
-                NavItem(
-                    section = MainSection.SETTINGS,
-                    active = selected == MainSection.SETTINGS,
-                    expanded = expanded,
-                    count = 0,
-                    onClick = { onSelect(MainSection.SETTINGS) },
-                    modifier = if (focusSection == MainSection.SETTINGS) {
-                        Modifier.focusRequester(selectedItemFocusRequester)
-                    } else Modifier,
+            // Footer group order: Settings, then the read-only source status, then profile.
+            NavItem(
+                label = stringResource(MainSection.SETTINGS.labelRes),
+                section = MainSection.SETTINGS,
+                active = selected == MainSection.SETTINGS,
+                expanded = expanded,
+                onClick = { onSelect(MainSection.SETTINGS) },
+                modifier = if (focusSection == MainSection.SETTINGS) {
+                    Modifier.focusRequester(selectedItemFocusRequester)
+                } else Modifier,
+            )
+            Spacer(Modifier.height(10.dp))
+
+            SourceDisplay(expanded = expanded, sourceSummary = sourceSummary)
+            Spacer(Modifier.height(12.dp))
+
+            ProfileRow(
+                expanded = expanded,
+                avatarId = avatarId,
+                profileName = profileName,
+                onPickAvatar = onPickAvatar,
+                onSwitchProfile = onSwitchProfile,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AppLogo(expanded: Boolean, modifier: Modifier = Modifier) {
+    val colors = OwnTVTheme.colors
+    // Same lockstep-animation approach as NavItem: an animated lead-in padding instead of a discrete
+    // Arrangement flip, so the mark doesn't jump to center then drift as the rail width tweens.
+    val iconLeadPadding by animateDpAsState(
+        targetValue = if (expanded) 0.dp else 12.dp,
+        animationSpec = tween(220),
+        label = "logoIconPadding",
+    )
+    Row(
+        modifier = modifier.fillMaxWidth().padding(start = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+    ) {
+        Box(
+            modifier = Modifier.padding(start = iconLeadPadding).size(28.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            OwnTVIcon(icon = OwnTVIcon.PLAY, tint = colors.primary, modifier = Modifier.size(22.dp), filled = true)
+        }
+        androidx.compose.animation.AnimatedVisibility(
+            visible = expanded,
+            enter = androidx.compose.animation.fadeIn(tween(220)) +
+                androidx.compose.animation.expandHorizontally(tween(220), expandFrom = Alignment.Start),
+            exit = androidx.compose.animation.fadeOut(tween(180)) +
+                androidx.compose.animation.shrinkHorizontally(tween(180), shrinkTowards = Alignment.Start),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
-
-        // Phase 1 — profile relocated to the bottom of the rail (was top). A divider groups the account
-        // avatar apart from the nav items above it.
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .height(1.dp)
-                .background(colors.outlineVariant),
-        )
-        ProfileCard(
-            expanded = expanded,
-            avatarId = avatarId,
-            profileName = profileName,
-            sourceSummary = sourceSummary,
-            onPickAvatar = onPickAvatar,
-            onSwitchProfile = onSwitchProfile,
-        )
     }
 }
 
 /**
- * Brand mark at the top of the rail — the cyan play-triangle inside a rounded-square outline, the same
- * geometry as [ic_launcher_foreground] (kept consistent with the planned branded splash). Drawn from
- * [OwnTVIcon.PLAY] (filled) inside an outlined [Box] so it matches the visual weight of the 56dp avatar
- * below. Decorative only: a plain Box is not focusable, so it neither captures D-pad focus nor traps an
- * "up" press. Tints with [OwnTVTheme.colors].primary so it follows the user's accent like the nav icons.
+ * Read-only display of the active IPTV source — never editable from here; changing sources still
+ * happens in Settings → Manage Sources / the playlist picker. Lives as a compact footer pill above
+ * Settings/profile. Fixed single-line height at all times: it used to grow to a two-line label when
+ * expanded and shrink to a bare dot when collapsed, which shifted every row above it up and down on
+ * every focus change — pinning the height (and keeping it one line) fixes that for good.
  */
 @Composable
-private fun AppLogo(modifier: Modifier = Modifier) {
+private fun SourceDisplay(expanded: Boolean, sourceSummary: String?) {
     val colors = OwnTVTheme.colors
-    Box(
-        modifier = modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .border(width = 2.dp, color = colors.primary, shape = RoundedCornerShape(20.dp)),
-        contentAlignment = Alignment.Center,
-    ) {
-        OwnTVIcon(icon = OwnTVIcon.PLAY, tint = colors.primary, modifier = Modifier.size(26.dp), filled = true)
-    }
-}
+    val noSourceLabel = stringResource(R.string.shell_no_source)
+    val label = sourceSummary ?: noSourceLabel
+    val connected = sourceSummary != null
 
-@Composable
-private fun ProfileCard(
-    expanded: Boolean,
-    avatarId: Int,
-    profileName: String,
-    sourceSummary: String?,
-    onPickAvatar: () -> Unit,
-    onSwitchProfile: () -> Unit,
-) {
-    val colors = OwnTVTheme.colors
-    val sourceLabel = sourceSummary ?: stringResource(R.string.shell_no_source)
+    val rowHorizontalPadding by animateDpAsState(
+        targetValue = if (expanded) 10.dp else 0.dp,
+        animationSpec = tween(220),
+        label = "sourceRowPadding",
+    )
+    val dotLeadPadding by animateDpAsState(
+        targetValue = if (expanded) 0.dp else 14.dp,
+        animationSpec = tween(220),
+        label = "sourceDotPadding",
+    )
+    // Collapses down to exactly its own height (36dp) so a fixed 18dp corner radius reads as a true
+    // circle badge, matching the collapsed rail's icon-only rows — a wide rounded rectangle read as
+    // an odd leftover "pill" once everything else went icon-only. Expands back out to the rail's
+    // known content width (SidebarWidthExpanded minus the Column's 16dp side padding).
+    val pillWidth by animateDpAsState(
+        targetValue = if (expanded) Dimens.SidebarWidthExpanded - 32.dp else 36.dp,
+        animationSpec = tween(220),
+        label = "sourcePillWidth",
+    )
 
-    if (!expanded) {
-        // Fixed nav: just the avatar — click opens the profile switcher ("who's watching"), long-press
-        // changes the avatar picture. Pinned top-left, always in the same spot.
-        AvatarButton(avatarId = avatarId, sizeDp = 56, onClick = onSwitchProfile, onLongClick = onPickAvatar)
-        return
-    }
-
-    Box(
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(colors.surfaceContainerHighest),
+            .width(pillWidth)
+            .height(36.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(colors.onSurface.copy(alpha = 0.05f))
+            .padding(horizontal = rowHorizontalPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .background(colors.primaryContainer.copy(alpha = 0.45f)),
+                .padding(start = dotLeadPadding)
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(if (connected) Color(0xFF6EE7A0) else colors.onSurfaceVariant),
         )
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        androidx.compose.animation.AnimatedVisibility(
+            visible = expanded,
+            enter = androidx.compose.animation.fadeIn(tween(220)) +
+                androidx.compose.animation.expandHorizontally(tween(220), expandFrom = Alignment.Start),
+            exit = androidx.compose.animation.fadeOut(tween(180)) +
+                androidx.compose.animation.shrinkHorizontally(tween(180), shrinkTowards = Alignment.Start),
         ) {
-            AvatarButton(avatarId = avatarId, sizeDp = 64, onClick = onPickAvatar)
-            Spacer(Modifier.height(10.dp))
-            Text(
-                profileName.ifBlank { stringResource(R.string.common_own_tv_user) },
-                style = MaterialTheme.typography.titleMedium,
-                color = colors.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                sourceLabel,
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(12.dp))
-            // Switch profile without quitting the app (routes back to the "Who's watching?" gate).
-            FocusableSurface(
-                onClick = onSwitchProfile,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                focusedContainerColor = colors.surfaceContainerHigh,
-                unfocusedContainerColor = colors.surfaceContainer,
-                contentAlignment = Alignment.Center,
-                surface = GlassSurface.SIDEBAR,
-            ) { focused ->
-                val c = if (focused) colors.onSurface else colors.onSurfaceVariant
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    OwnTVIcon(icon = OwnTVIcon.PERSON, tint = c, modifier = Modifier.size(18.dp))
-                    Text(
-                        stringResource(R.string.common_switch_profile),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = c,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f).then(
-                            if (focused) Modifier.basicMarquee(iterations = Int.MAX_VALUE) else Modifier,
-                        ),
-                    )
-                }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = colors.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 150.dp),
+                )
             }
         }
     }
 }
 
+/**
+ * Entry point into the existing Search destination — visually lives in the rail now (icon + label,
+ * same ladder styling as the other nav rows), but just forwards to whatever Search already does.
+ */
 @Composable
-private fun AvatarButton(avatarId: Int, sizeDp: Int, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) {
-    FocusableSurface(
+private fun SearchEntry(expanded: Boolean, onClick: () -> Unit) {
+    NavItem(
+        label = stringResource(MainSection.SEARCH.labelRes),
+        section = MainSection.SEARCH,
+        active = false,
+        expanded = expanded,
         onClick = onClick,
-        onLongClick = onLongClick,
-        modifier = Modifier.size(sizeDp.dp),
-        shape = CircleShape,
-        focusedScale = 1.02f,
-        focusedContainerColor = OwnTVTheme.colors.surfaceContainerHighest,
-        unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-        selectedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-        contentAlignment = Alignment.Center,
-        surface = GlassSurface.SIDEBAR,
-    ) { _ ->
-        OwnTVAvatar(avatarId = avatarId, modifier = Modifier.size((sizeDp - 4).dp))
-    }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        color = OwnTVTheme.colors.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
     )
 }
 
 @Composable
 private fun NavItem(
+    label: String,
     section: MainSection,
     active: Boolean,
     expanded: Boolean,
-    count: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = OwnTVTheme.colors
-    // Approved compact beacon: the focus owner still spans the rail for reliable D-pad targeting,
-    // while the visible selection is a centered 48 dp tile with its own marker and soft halo.
-    val shape = RoundedCornerShape(13.dp)
+    val density = LocalDensity.current
+
     FocusableSurface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         selected = active,
-        shape = shape,
+        shape = RoundedCornerShape(6.dp),
         focusedContainerColor = Color.Transparent,
         unfocusedContainerColor = Color.Transparent,
         selectedContainerColor = Color.Transparent,
-        // The visible fill is rendered by the inner nav ladder, but the outer focus owner still
-        // needs to know this is glass so it does not create a scale/shadow layer while scrolling.
-        surface = GlassSurface.SIDEBAR,
         showFocusBorder = false,
         renderSelectionContainer = false,
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.CenterStart,
     ) { focused ->
-        val ladder = rememberNavLadderColors(
-            selected = active,
-            focused = focused,
+        val isActive = active || focused
+        // grey by default; white when hovered/focused/selected — the Netflix ladder from the mockup.
+        val contentColor = if (isActive) colors.onSurface else colors.onSurfaceVariant
+        val underlineWidth by animateFloatAsState(
+            targetValue = if (isActive) 1f else 0f,
+            animationSpec = tween(180),
+            label = "underline",
         )
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            // A separate 3 dp marker stays readable after focus moves away, in solid and glass modes.
-            NavAccentBar(visible = ladder.showAccentBar, height = 22.dp)
-            Box(
+        // Hover/focus alone gets a plain white underline (matches contentColor). The row that's
+        // actually the current section keeps the brand accent color on both its icon and underline
+        // at all times — even when focus has moved elsewhere — so "selected" reads as a persistent
+        // colored marker instead of only ever looking identical to "currently hovered."
+        val underlineColor = if (active) colors.primary else colors.onSurface
+        val iconColor = if (active) colors.primary else contentColor
+        // The actual measured width of the label text (px), captured via onSizeChanged. The underline
+        // is sized off of this rather than the column's own width, so it never stretches to match a
+        // marquee's expanded layout width or the row's own max width — it always tracks the glyphs.
+        var labelWidthPx by remember { mutableIntStateOf(0) }
+
+        // Row width and icon lead-in animate on the SAME tween as the rail's own width (220ms) so the
+        // icon slides in lockstep with the rail instead of snapping to a new Arrangement the instant
+        // focus changes (which is what produced the "closes on the right, then slides left" glitch).
+        val rowHorizontalPadding by animateDpAsState(
+            targetValue = if (expanded) 8.dp else 0.dp,
+            animationSpec = tween(220),
+            label = "navItemRowPadding",
+        )
+        // Centers the 20dp icon within the collapsed rail's ~56dp content width; animates to 0 as the
+        // rail expands and the row switches to a flush-left layout.
+        val iconLeadPadding by animateDpAsState(
+            targetValue = if (expanded) 0.dp else 18.dp,
+            animationSpec = tween(220),
+            label = "navItemIconPadding",
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                // Fixed height regardless of expanded state. This row used to size itself off its
+                // content (icon-only vs icon+text+underline are different heights), and since this
+                // whole footer group sits below a weight(1f) spacer, any height change here shifted
+                // the footer's position — the last bit of the "still teleporting a tad" drift.
+                .height(40.dp)
+                .padding(horizontal = rowHorizontalPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+        ) {
+            FaNavIcon(
+                section = section,
+                color = iconColor,
                 modifier = Modifier
-                    .width(48.dp)
-                    .height(39.dp)
-                    .then(
-                        if (active) Modifier.shadow(
-                            elevation = 6.dp,
-                            shape = shape,
-                            ambientColor = colors.primary.copy(alpha = 0.30f),
-                            spotColor = colors.primary.copy(alpha = 0.30f),
-                            clip = false,
-                        ) else Modifier
-                    )
-                    .clip(shape)
-                    // Material follows the active mode; compact geometry stays identical in both.
-                    .glass(surface = GlassSurface.SIDEBAR, baseFill = ladder.container, shape = shape)
-                    .then(
-                        if (active) Modifier.background(
-                            Brush.linearGradient(
-                                listOf(
-                                    colors.primary.copy(alpha = 0.64f),
-                                    colors.primaryContainer.copy(alpha = 0.76f),
-                                ),
-                            ),
-                            shape,
-                        ) else Modifier
-                    )
-                    .then(
-                        when {
-                            active -> Modifier.border(
-                                1.dp,
-                                colors.primary.copy(alpha = if (focused) 0.95f else 0.72f),
-                                shape,
-                            )
-                            ladder.focusBorder != null -> Modifier.border(tv.own.owntv.ui.theme.LocalFocusBorderWidth.current, ladder.focusBorder, shape)
-                            else -> Modifier
-                        }
-                    ),
-                contentAlignment = Alignment.Center,
+                    .padding(start = iconLeadPadding)
+                    .size(20.dp),
+            )
+            androidx.compose.animation.AnimatedVisibility(
+                visible = expanded,
+                enter = androidx.compose.animation.fadeIn(tween(220)) +
+                    androidx.compose.animation.expandHorizontally(tween(220), expandFrom = Alignment.Start),
+                exit = androidx.compose.animation.fadeOut(tween(180)) +
+                    androidx.compose.animation.shrinkHorizontally(tween(180), shrinkTowards = Alignment.Start),
             ) {
-                // Monochrome duotone nav icon — tints via the shared ladder (muted idle, white cursor,
-                // accent when active). No per-frame animation on the always-visible nav.
-                NavDuotoneIcon(
-                    section = section,
-                    color = if (active) colors.onPrimaryContainer else ladder.icon,
-                    modifier = Modifier.size(24.dp),
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.width(14.dp))
+                    Column(
+                        modifier = Modifier.widthIn(max = 160.dp),
+                    ) {
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
+                            color = contentColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .onSizeChanged { labelWidthPx = it.width }
+                                .then(
+                                    if (focused) Modifier.basicMarquee(iterations = Int.MAX_VALUE) else Modifier,
+                                ),
+                        )
+                        // Underline sits only under the label text, not the icon: width is driven off
+                        // the text's own measured width (not the column's, which can stretch wider than
+                        // the glyphs once basicMarquee is applied) and animates in/out.
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 3.dp)
+                                .width(with(density) { (labelWidthPx * underlineWidth.coerceIn(0f, 1f)).toDp() })
+                                .height(2.dp)
+                                .background(underlineColor),
+                        )
+                    }
+                }
             }
         }
     }
 }
 
-private val MainSection.navIcon: OwnTVIcon
-    get() = when (this) {
-        MainSection.SEARCH -> OwnTVIcon.SEARCH
-        MainSection.HOME -> OwnTVIcon.HOME
-        MainSection.LIVE_TV -> OwnTVIcon.LIVE_TV
-        MainSection.MOVIES -> OwnTVIcon.MOVIES
-        MainSection.SERIES -> OwnTVIcon.SERIES
-        MainSection.DOWNLOADS -> OwnTVIcon.DOWNLOADS
-        MainSection.EPG -> OwnTVIcon.EPG
-        MainSection.SETTINGS -> OwnTVIcon.SETTINGS
+@Composable
+private fun ProfileRow(
+    expanded: Boolean,
+    avatarId: Int,
+    profileName: String,
+    onPickAvatar: () -> Unit,
+    onSwitchProfile: () -> Unit,
+) {
+    val colors = OwnTVTheme.colors
+    val leadPadding by animateDpAsState(
+        targetValue = if (expanded) 0.dp else 11.dp,
+        animationSpec = tween(220),
+        label = "profileLeadPadding",
+    )
+    // Tracks the avatar tile's focus state (TV "hover" = D-pad focus) so the name label beside it
+    // can pick up the same emphasis — bold + underline — while the row is focused.
+    var profileFocused by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = leadPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+    ) {
+        FocusableSurface(
+            onClick = onSwitchProfile,
+            onLongClick = onPickAvatar,
+            modifier = Modifier.size(34.dp),
+            // Square (rounded-corner) container instead of a circle: the avatar art itself is already
+            // drawn as a rounded square, and clipping that to a circle was cropping its corners off —
+            // that's the "cutoff" edges. Also drop the built-in focus/selection border ring so nothing
+            // colored outlines it; the background tint + scale on focus is enough feedback.
+            shape = RoundedCornerShape(9.dp),
+            showFocusBorder = false,
+            focusedScale = 1.02f,
+            focusedContainerColor = colors.surfaceContainerHighest,
+            unfocusedContainerColor = Color.Transparent,
+            selectedContainerColor = Color.Transparent,
+            contentAlignment = Alignment.Center,
+        ) { focused ->
+            LaunchedEffect(focused) { profileFocused = focused }
+            OwnTVAvatar(avatarId = avatarId, modifier = Modifier.size(32.dp))
+        }
+        androidx.compose.animation.AnimatedVisibility(
+            visible = expanded,
+            enter = androidx.compose.animation.fadeIn(tween(220)) +
+                androidx.compose.animation.expandHorizontally(tween(220), expandFrom = Alignment.Start),
+            exit = androidx.compose.animation.fadeOut(tween(180)) +
+                androidx.compose.animation.shrinkHorizontally(tween(180), shrinkTowards = Alignment.Start),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    profileName.ifBlank { stringResource(R.string.common_own_tv_user) },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.onSurface,
+                    fontWeight = if (profileFocused) FontWeight.Bold else FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
+}

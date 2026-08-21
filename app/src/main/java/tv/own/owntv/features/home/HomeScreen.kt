@@ -305,7 +305,6 @@ fun HomeScreen(
       LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .roundedPanel(fillColor = ContentPanelFill)
             .onFocusChanged { if (it.hasFocus) onChildFocused() }
             .focusGroup(),
         state = listState,

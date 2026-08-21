@@ -400,7 +400,6 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .roundedPanel(fillColor = ContentPanelFill)
             // onEnter fires ONLY for directional entry into this group (sidebar D-pad, etc.), NOT for
             // programmatic restores — those are handled by the dialog-return LaunchedEffect above (and
             // dialogReturn is cleared there). So this only picks the entry fallback: the last-opened

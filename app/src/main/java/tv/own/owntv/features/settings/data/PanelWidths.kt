@@ -17,9 +17,15 @@ val BrowseColumnGap: Dp = 12.dp
 /** The category/list separator itself. */
 val BrowseColumnDividerSpace: Dp = 1.dp
 
-/** Non-content width inside the shared browse container. */
-fun browsePanelGapTotal(previewVisible: Boolean): Dp =
-    BrowseColumnDividerSpace + BrowseColumnGap * if (previewVisible) 3 else 2
+/**
+ * Non-content width inside the shared browse container. Every column boundary now gets its own
+ * hairline divider (category|list, and — since panel 6 dropped the raised preview card — list|preview
+ * too), each flanked by a gap on both sides: divider + 2 gaps per boundary.
+ */
+fun browsePanelGapTotal(previewVisible: Boolean): Dp {
+    val boundaries = if (previewVisible) 2 else 1
+    return BrowseColumnDividerSpace * boundaries + BrowseColumnGap * boundaries * 2
+}
 
 /**
  * Manual panel-width adjustment (per section, per panel).

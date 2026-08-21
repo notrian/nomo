@@ -105,9 +105,6 @@ import tv.own.owntv.ui.components.trapAllFocusExit
 import tv.own.owntv.ui.components.trapVerticalFocusExit
 import tv.own.owntv.ui.components.SortChip
 import tv.own.owntv.ui.components.formatCount
-import tv.own.owntv.ui.components.ContentPanelFill
-import tv.own.owntv.ui.components.PreviewPanelFill
-import tv.own.owntv.ui.components.roundedPanel
 import tv.own.owntv.ui.components.dialogPanel
 import tv.own.owntv.ui.components.modalScrim
 import tv.own.owntv.ui.components.gridFocusTarget
@@ -387,7 +384,6 @@ private fun SeriesGrid(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .roundedPanel(fillColor = ContentPanelFill)
             .padding(BrowseContainerPadding)
             .onFocusChanged { if (it.hasFocus) onChildFocused() },
     ) {
@@ -579,10 +575,17 @@ private fun SeriesGrid(
         if (previewVisible) {
             Spacer(Modifier.width(BrowseColumnGap))
             Box(
+                Modifier
+                    .width(BrowseColumnDividerSpace)
+                    .fillMaxHeight()
+                    .padding(vertical = 2.dp)
+                    .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
+            )
+            Spacer(Modifier.width(BrowseColumnGap))
+            Box(
                 modifier = Modifier
                     .then(if (panels != null) Modifier.width(panels.preview) else Modifier.weight(1f))
                     .fillMaxSize()
-                    .roundedPanel(fillColor = PreviewPanelFill)
                     .padding(BrowseContainerPadding),
             ) {
                 val s = selectedSeries
@@ -604,8 +607,8 @@ private fun SeriesGrid(
                     else s.rating?.takeIf { it > 0 } ?: meta?.rating?.takeIf { it > 0 }
                 val genres = jsonStringList(meta?.genresJson)
                 val cast = tv.own.owntv.core.metadata.MetadataCast.names(meta?.castJson)
-                // Outer details Box carries the rounded panel (glass-aware); no clip/background here,
-                // mirroring MovieDetailsPane so the PreviewPanelFill glass shows through.
+                // Outer details Box no longer carries a panel — content floats directly on the
+                // screen background, seamed off from the list by the hairline divider above.
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1140,10 +1143,7 @@ private fun EpisodeView(
     }
 
     Column(
-        // Same rounded content panel as the series grid — the episode list was the one view drawn
-        // without a panel background.
         modifier = modifier.fillMaxSize().onFocusChanged { if (it.hasFocus) onChildFocused() }
-            .roundedPanel(fillColor = ContentPanelFill)
             .padding(horizontal = Dimens.ScreenPaddingH, vertical = Dimens.ScreenPaddingV),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -1307,7 +1307,15 @@ private fun EpisodeView(
                     }
                     // Grid mode drops the preview pane on purpose: the tiles already show the still,
                     // which is the whole point of the layout, and a full-width grid fits far more.
-                    if (!isEpisodeGrid) Box(modifier = Modifier.weight(1f).fillMaxHeight().roundedPanel(fillColor = PreviewPanelFill)) {
+                    if (!isEpisodeGrid) {
+                        Box(
+                            Modifier
+                                .width(1.dp)
+                                .fillMaxHeight()
+                                .padding(vertical = 2.dp)
+                                .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
+                        )
+                        Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                         val ep = selectedEpisode
                         val meta = selectedEpisodeMeta?.takeIf { it.episodeId == ep?.id }?.cache
                         val nextUpEp = nextUpId?.let { id -> episodes.firstOrNull { it.id == id } }
@@ -1323,6 +1331,7 @@ private fun EpisodeView(
                             downloadStrip = (ep?.let { e -> episodeDownloadStates[e.id]?.let { tv.own.owntv.ui.components.downloadStripFor(listOf(it)) } })
                                 ?: tv.own.owntv.ui.components.downloadStripFor(openedSeriesDownloads),
                         )
+                        }
                     }
                 }
             }

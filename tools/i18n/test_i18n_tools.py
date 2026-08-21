@@ -870,7 +870,7 @@ class TestValidateStrings(unittest.TestCase):
         locales = _full_tier1()
         res = _make_fixture(self.tmpdir, source, locales, {"values-de": '<resources></resources>'})
         (res / "values-de/donottranslate.xml").write_text(
-            '<resources><string name="app_name" translatable="false">OwnTV</string></resources>')
+            '<resources><string name="app_name" translatable="false">NomoTV</string></resources>')
         # Make the synthetic locale part of the catalogue without changing the exact Tier 1 set.
         for e in locales:
             if e["id"] == "de":

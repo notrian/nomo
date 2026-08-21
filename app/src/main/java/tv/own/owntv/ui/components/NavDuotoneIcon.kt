@@ -118,14 +118,18 @@ fun NavDuotoneIcon(
             }
 
             // ---- Search — magnifier + corner brackets + dash ---------------------
+            // Coordinates kept a few units inside the 100-unit grid (not flush to 0/100) so the
+            // rounded stroke caps never get clipped at the Canvas edge — that clipping is what read
+            // as "weird edges" on the glyph. Magnifier is centered on the grid (was off-center at
+            // 45,45) so it sits visually balanced within the brackets.
             MainSection.SEARCH -> {
-                drawCircle(fill, radius = 24f * s, center = o(45f, 45f), style = stroke)
-                drawPath(poly(63f,63f, 82f,82f), fill, style = stroke)
-                drawPath(poly(21f,16f, 16f,16f, 16f,21f), soft, style = thin)
-                drawPath(poly(79f,16f, 84f,16f, 84f,21f), soft, style = thin)
-                drawPath(poly(16f,79f, 16f,84f, 21f,84f), soft, style = thin)
-                drawPath(poly(84f,79f, 84f,84f, 79f,84f), soft, style = thin)
-                drawPath(poly(35f,45f, 55f,45f), soft, style = stroke)
+                drawCircle(fill, radius = 22f * s, center = o(44f, 44f), style = stroke)
+                drawPath(poly(60f,60f, 76f,76f), fill, style = stroke)
+                drawPath(poly(23f,18f, 18f,18f, 18f,23f), soft, style = thin)
+                drawPath(poly(77f,18f, 82f,18f, 82f,23f), soft, style = thin)
+                drawPath(poly(18f,77f, 18f,82f, 23f,82f), soft, style = thin)
+                drawPath(poly(82f,77f, 82f,82f, 77f,82f), soft, style = thin)
+                drawPath(poly(35f,44f, 53f,44f), soft, style = stroke)
             }
 
             // ---- Settings — sliders + orbit accent --------------------------------

@@ -91,7 +91,7 @@ fun OwnTVTextField(
     val keyboard = LocalSoftwareKeyboardController.current
     val tvImeWatcher = LocalTvImeWatcher.current
     val tvImeMetrics = LocalTvImeMetrics.current
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(8.dp) // Phase 7 — matches the shared control radius
     val focused = fieldFocused || editing
     var showPassword by remember { mutableStateOf(false) }
     val eyeInteraction = remember { MutableInteractionSource() }

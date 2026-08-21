@@ -83,7 +83,7 @@ fun SearchBar(
     val keyboard = LocalSoftwareKeyboardController.current
     val tvImeWatcher = LocalTvImeWatcher.current
     val tvImeMetrics = LocalTvImeMetrics.current
-    val shape = RoundedCornerShape(50)
+    val shape = RoundedCornerShape(8.dp) // Phase 7 — slightly-rounded rect, not a full pill
     val focused = pillFocused || editing
     // Glassy only when a surface is given and it's in the active glass scope (matches FocusableSurface).
     val glassy = surface != null && LocalGlass.current.isGlassy(surface)

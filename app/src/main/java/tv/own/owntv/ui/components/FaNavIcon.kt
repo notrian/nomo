@@ -13,6 +13,7 @@ import androidx.tv.material3.Text
 import tv.own.owntv.R
 import tv.own.owntv.features.shell.MainSection
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * Font Awesome 6 Free — Solid. Drop the downloaded `fa-solid-900.otf` into
@@ -51,6 +52,7 @@ fun FaIcon(glyph: String, color: Color, modifier: Modifier = Modifier) {
             maxLines = 1,
             textAlign = TextAlign.Center,
             softWrap = false,
+            overflow = TextOverflow.Clip,
             modifier = Modifier.wrapContentSize(unbounded = true),
             )
     }

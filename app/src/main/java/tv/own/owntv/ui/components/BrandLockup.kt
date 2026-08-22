@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.Text
 import tv.own.owntv.R
 import tv.own.owntv.ui.theme.OwnTVTheme
+import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * Theme-adaptive "OwnTV" wordmark. The provided logo asset has a near-white "Own" that vanishes on
@@ -73,6 +74,7 @@ fun BrandLockup(
             fontSize = textSize.sp,
             maxLines = 1,
             softWrap = false,
+            overflow = TextOverflow.Clip,
         )
     }
 }

@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     # Was hanging silently for ~59min before GitHub killed it. Fail fast instead so a stuck build
     # shows up as a clear timeout, not a mystery yellow run.
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:

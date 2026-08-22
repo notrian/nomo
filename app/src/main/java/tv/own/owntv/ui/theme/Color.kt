@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 val AccentCyan = Color(0xFF52DBC8)
 
 // ---------------- DARK (M3 dark over near-black #0A0A0A) ----------------
-val DarkBackground = Color(0xFF0A0A0A) // Option A — nav + inter-panel gap surface
+val DarkBackground = Color(0xFF0F0F0F) // Option A — nav + inter-panel gap surface
 val DarkSurface = Color(0xFF121212)
 val DarkSurfaceContainerLowest = Color(0xFF0D0D0D)
 val DarkSurfaceContainerLow = Color(0xFF1A1A1A)

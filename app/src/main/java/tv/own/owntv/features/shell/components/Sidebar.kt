@@ -103,7 +103,7 @@ fun Sidebar(
     // Slightly transparent, frosted glass — not a bordered/rounded card, just a flat translucent
     // plane flush to the left edge. Even lighter footprint when collapsed to icon-only.
     val railAlpha by animateFloatAsState(
-        targetValue = if (expanded) 0.78f else 0.55f,
+        targetValue = if (expanded) 0.86f else 0.72f,
         animationSpec = tween(220),
         label = "railAlpha",
     )

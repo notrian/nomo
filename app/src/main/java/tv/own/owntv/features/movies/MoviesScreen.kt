@@ -107,6 +107,7 @@ import tv.own.owntv.ui.theme.Dimens
 import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.OwnTVTheme
 import tv.own.owntv.ui.format.localizedInteger
+import androidx.compose.foundation.layout.PaddingValues
 
 @Composable
 fun MoviesScreen(
@@ -489,6 +490,7 @@ fun MoviesScreen(
                     columns = GridCells.Adaptive(minSize = 130.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
+//                    contentPadding = PaddingValues(vertical = 16.dp),
                 ) {
                     items(
                         count = movies.itemCount,

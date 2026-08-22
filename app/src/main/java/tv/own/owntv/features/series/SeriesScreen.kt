@@ -112,6 +112,7 @@ import tv.own.owntv.ui.theme.Dimens
 import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.OwnTVTheme
 import tv.own.owntv.ui.format.localizedInteger
+import androidx.compose.foundation.layout.PaddingValues
 
 @Composable
 fun SeriesScreen(
@@ -543,6 +544,7 @@ private fun SeriesGrid(
                     columns = GridCells.Adaptive(minSize = 130.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
+//                    contentPadding = PaddingValues(vertical = 16.dp),
                 ) {
                     items(
                         count = series.itemCount,
@@ -1262,6 +1264,7 @@ private fun EpisodeView(
                                 columns = GridCells.Adaptive(minSize = 210.dp),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
+//                                contentPadding = PaddingValues(vertical = 16.dp),
                             ) {
                                 gridItemsIndexed(visibleEpisodes, key = { _, ep -> ep.id }) { index, ep ->
                                     val prog = episodeProgress[ep.id]

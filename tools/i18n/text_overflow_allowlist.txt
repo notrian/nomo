@@ -1,2 +1,4 @@
 # path<TAB>normalized-call-identity<TAB>occurrence<TAB>justification
 app/src/main/java/tv/own/owntv/ui/components/ChannelNumber.kt	Text(number.toString())	1	Fixed-width ASCII channel identifier column intentionally clips instead of scrolling
+app/src/main/java/tv/own/owntv/ui/components/BrandLockup.kt	Text(text=buildAnnotatedString{withStyle(androidx.compose.ui.text.SpanStyle(color=colors.textPrimary,fontWeight=FontWeight.Bold)){append(own)}withStyle(androidx.compose.ui.text.SpanStyle(color=colors.primary,fontWeight=FontWeight.Bold)){append(tv)}})	1	Fixed brand wordmark ("OwnTV"), not user-translatable copy, sized to always fit its box
+app/src/main/java/tv/own/owntv/ui/components/FaNavIcon.kt	Text(text=glyph)	1	Single Font Awesome glyph codepoint, not translatable text, sized off its own box width

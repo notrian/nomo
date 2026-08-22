@@ -200,6 +200,6 @@ class UpdateManager(
 
     companion object {
         private const val TAG = "UpdateManager"
-        const val REPO = "ahXN00/OwnTV"
+        const val REPO = "notrian/nomo"
     }
 }

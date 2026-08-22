@@ -1,0 +1,36 @@
+#EXTM3U
+# Open-source / Creative Commons test VOD playlist
+# Movies + "series" entries for testing type="movie" / type="series" parsing.
+# All sources: Blender Foundation open movies (CC BY 3.0), hosted on Google's
+# public GTV sample bucket (stable, widely used for HTML5/video testing).
+
+#EXTINF:-1 tvg-id="bbb" tvg-name="Big Buck Bunny" tvg-logo="https://peach.blender.org/wp-content/uploads/title_anouncement.jpg" group-title="Movies" type="movie",Big Buck Bunny
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+
+#EXTINF:-1 tvg-id="ed" tvg-name="Elephants Dream" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/e/e8/Elephants_Dream_-_10.png" group-title="Movies" type="movie",Elephants Dream
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4
+
+#EXTINF:-1 tvg-id="sintel" tvg-name="Sintel" tvg-logo="https://durian.blender.org/wp-content/uploads/2010/06/05_comp_000561.jpg" group-title="Movies" type="movie",Sintel
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4
+
+#EXTINF:-1 tvg-id="tos" tvg-name="Tears of Steel" tvg-logo="https://mango.blender.org/wp-content/uploads/2012/09/tearsofsteel_bcon2.jpg" group-title="Movies" type="movie",Tears of Steel
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4
+
+# --- "Series" test data ---
+# Not a real TV show — reuses short Google sample clips as fake S01E0x entries
+# so you can validate episode grouping / isSeries parsing.
+
+#EXTINF:-1 tvg-id="testshow-s01e01" tvg-name="Test Show S01E01" group-title="TV Shows" type="series" tvg-type="series",Test Show S01E01 - Blazes
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4
+
+#EXTINF:-1 tvg-id="testshow-s01e02" tvg-name="Test Show S01E02" group-title="TV Shows" type="series" tvg-type="series",Test Show S01E02 - Escapes
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4
+
+#EXTINF:-1 tvg-id="testshow-s01e03" tvg-name="Test Show S01E03" group-title="TV Shows" type="series" tvg-type="series",Test Show S01E03 - Fun
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4
+
+#EXTINF:-1 tvg-id="testshow-s01e04" tvg-name="Test Show S01E04" group-title="TV Shows" type="series" tvg-type="series",Test Show S01E04 - Joyrides
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4
+
+#EXTINF:-1 tvg-id="testshow-s01e05" tvg-name="Test Show S01E05" group-title="TV Shows" type="series" tvg-type="series",Test Show S01E05 - Meltdowns
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4

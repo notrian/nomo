@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.focus.focusRequester
@@ -61,6 +62,7 @@ import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.components.longPressMenuGuard
 import tv.own.owntv.ui.format.rememberSystemTimeFormatter
 import tv.own.owntv.ui.theme.Dimens
+import tv.own.owntv.ui.theme.FeatherGradientColors
 import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.OwnTVTheme
 import tv.own.owntv.ui.theme.PopupFontTheme
@@ -92,15 +94,17 @@ internal fun ProgrammeStripCanvas(
     val gapPx = with(density) { 4.dp.toPx() }
     val padPx = with(density) { 10.dp.toPx() }
     val borderPx = with(density) { tv.own.owntv.ui.theme.LocalFocusBorderWidth.current.toPx() }
-    val airingBarPx = with(density) { 3.dp.toPx() }
-    val airingBarInsetPx = with(density) { 4.dp.toPx() }
-    val corner = with(density) { CornerRadius(10.dp.toPx(), 10.dp.toPx()) }
+    val corner = with(density) { CornerRadius(8.dp.toPx(), 8.dp.toPx()) } // radius-sm, matches .guide-block
+    val nowGradient = remember { Brush.linearGradient(FeatherGradientColors) }
     val titleStyle = MaterialTheme.typography.titleSmall.copy(
         color = colors.onSurface,
         textDirection = TextDirection.Content,
     )
+    // The "now" cell fills with the fixed feather gradient (matches .guide-block.now), which is
+    // always bright regardless of theme — so its text stays a fixed dark ink, not colors.onSurface.
+    val onGradient = Color(0xFF0A0A0D)
     val titleNowStyle = MaterialTheme.typography.titleSmall.copy(
-        color = colors.onSurface,
+        color = onGradient,
         textDirection = TextDirection.Content,
     )
     val timeStyle = MaterialTheme.typography.labelSmall.copy(
@@ -108,7 +112,7 @@ internal fun ProgrammeStripCanvas(
         textDirection = TextDirection.Content,
     )
     val timeNowStyle = MaterialTheme.typography.labelSmall.copy(
-        color = colors.onSurfaceVariant,
+        color = onGradient.copy(alpha = 0.65f),
         textDirection = TextDirection.Content,
     )
     val formatTime = rememberSystemTimeFormatter()
@@ -131,8 +135,9 @@ internal fun ProgrammeStripCanvas(
             }
         }
     }
-    // Vertical "now" marker + catch-up glyph — measured once, reused each frame.
-    val nowColor = Color(0xFFFF5C5C)
+    // Vertical "now" marker + catch-up glyph — measured once, reused each frame. Matches the
+    // mockup's --live red (same token LIVE badges use elsewhere), not a separate literal.
+    val nowColor = colors.favorite
     val nowLinePx = with(density) { 2.dp.toPx() }
     val catchupStyle = MaterialTheme.typography.labelSmall.copy(
         color = colors.primary,
@@ -153,19 +158,13 @@ internal fun ProgrammeStripCanvas(
             if (x + w <= 0f || x >= viewW) return@forEachIndexed // cull off-screen programmes
             val isNow = now in p.startMs until p.stopMs
             val hi = highlightTime != null && highlightTime in p.startMs until p.stopMs
-            val bg = when {
-                hi -> colors.card
-                isNow -> colors.primaryContainer.copy(alpha = 0.18f)
-                else -> colors.surfaceContainerHigh
-            }
-            drawRoundRect(color = bg, topLeft = Offset(x, 0f), size = Size(w, h), cornerRadius = corner)
-            if (isNow) {
-                drawRoundRect(
-                    color = colors.primary,
-                    topLeft = Offset(x + airingBarInsetPx, airingBarInsetPx),
-                    size = Size(airingBarPx, (h - airingBarInsetPx * 2f).coerceAtLeast(0f)),
-                    cornerRadius = CornerRadius(airingBarPx / 2f, airingBarPx / 2f),
-                )
+            // "Now" fills with the fixed feather gradient (matches .guide-block.now) instead of a
+            // translucent accent tint + separate left bar — the whole cell IS the indicator, same as
+            // the mockup. A focused/highlighted cell still wins visually (colors.card + border).
+            when {
+                hi -> drawRoundRect(color = colors.card, topLeft = Offset(x, 0f), size = Size(w, h), cornerRadius = corner)
+                isNow -> drawRoundRect(brush = nowGradient, topLeft = Offset(x, 0f), size = Size(w, h), cornerRadius = corner)
+                else -> drawRoundRect(color = colors.surfaceContainerHigh, topLeft = Offset(x, 0f), size = Size(w, h), cornerRadius = corner)
             }
             if (hi) drawRoundRect(color = colors.focusBorder, topLeft = Offset(x, 0f), size = Size(w, h), cornerRadius = corner, style = Stroke(borderPx))
             val textW = (w - padPx * 2f).toInt()

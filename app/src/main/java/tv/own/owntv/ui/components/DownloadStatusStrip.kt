@@ -75,7 +75,7 @@ fun downloadStripFor(rows: List<DownloadEntity>): DownloadStripState? {
 @Composable
 fun DownloadStatusStrip(state: DownloadStripState, modifier: Modifier = Modifier) {
     val colors = OwnTVTheme.colors
-    val accent = if (state.isError) Color(0xFFEF4444) else colors.primary
+    val accent = if (state.isError) colors.error else colors.primary
     val label = when (state.kind) {
         DownloadStripKind.DOWNLOADING -> pluralStringResource(R.plurals.content_downloading_items, state.count, state.count)
         DownloadStripKind.QUEUED -> pluralStringResource(R.plurals.content_queued_items, state.count, state.count)

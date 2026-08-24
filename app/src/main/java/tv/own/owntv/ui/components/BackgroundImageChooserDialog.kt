@@ -161,7 +161,7 @@ fun RemoteBackgroundDialog(
                     }
                 }
                 is tv.own.owntv.core.companion.CompanionServerState.Failed -> {
-                    Text(state.failure.displayText(), style = MaterialTheme.typography.bodyMedium, color = Color(0xFFEF4444), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Text(state.failure.displayText(), style = MaterialTheme.typography.bodyMedium, color = colors.error, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     Spacer(Modifier.height(12.dp))
                     OwnTVButton(stringResource(R.string.setup_try_again), onClick = { onStart(tv.own.owntv.core.companion.CompanionLink.DEFAULT_PORT) })
                 }
@@ -169,7 +169,7 @@ fun RemoteBackgroundDialog(
                     Text(
                         companionLockedText(),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFFEF4444),
+                        color = colors.error,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
                     Spacer(Modifier.height(12.dp))

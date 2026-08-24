@@ -151,7 +151,7 @@ fun DnsSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             Text(
                 stringResource(R.string.settings_dns_server_missing),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFFEF4444),
+                color = colors.error,
             )
         }
 
@@ -253,7 +253,7 @@ private fun DnsTestLabel(state: SettingsViewModel.DnsTestState) {
             R.string.settings_dns_resolved,
             state.millis,
         ) to colors.primary
-        is SettingsViewModel.DnsTestState.Fail -> state.failure.displayText() to Color(0xFFEF4444)
+        is SettingsViewModel.DnsTestState.Fail -> state.failure.displayText() to colors.error
         else -> null to colors.onSurfaceVariant
     }
     if (text != null) {

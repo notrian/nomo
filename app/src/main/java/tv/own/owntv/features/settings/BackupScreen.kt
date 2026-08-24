@@ -199,7 +199,7 @@ fun BackupScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                         BackupError.IMPORT -> R.string.settings_backup_import_error
                     },
                 ),
-                style = MaterialTheme.typography.bodyLarge, color = Color(0xFFEF4444),
+                style = MaterialTheme.typography.bodyLarge, color = colors.error,
             )
             else -> Unit
         }
@@ -547,7 +547,7 @@ private fun ProfilePinDialog(
             )
             if (wrong) {
                 Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.settings_backup_pin_incorrect), style = MaterialTheme.typography.bodyMedium, color = Color(0xFFEF4444))
+                Text(stringResource(R.string.settings_backup_pin_incorrect), style = MaterialTheme.typography.bodyMedium, color = colors.error)
             }
             Spacer(Modifier.height(20.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {

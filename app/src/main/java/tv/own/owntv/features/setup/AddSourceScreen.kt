@@ -406,7 +406,7 @@ fun AddSourceScreen(
                     OwnTVTextField(mac, { mac = it }, label = stringResource(R.string.setup_mac_address), placeholder = stringResource(R.string.setup_mac_example), modifier = Modifier.fillMaxWidth())
                     if (mac.isNotBlank() && !macValid) {
                         Spacer(Modifier.height(6.dp))
-                        Text(stringResource(R.string.setup_mac_invalid), style = MaterialTheme.typography.bodySmall, color = Color(0xFFEF4444))
+                        Text(stringResource(R.string.setup_mac_invalid), style = MaterialTheme.typography.bodySmall, color = colors.error)
                     }
                     Spacer(Modifier.height(18.dp))
                     Text(stringResource(R.string.setup_stalker_advanced_identity), style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
@@ -448,7 +448,7 @@ fun AddSourceScreen(
                             }
                             is StalkerTestUi.Failed -> {
                                 Spacer(Modifier.height(6.dp))
-                                Text(stalkerTest.failure.displayText(), style = MaterialTheme.typography.bodySmall, color = Color(0xFFEF4444))
+                                Text(stalkerTest.failure.displayText(), style = MaterialTheme.typography.bodySmall, color = colors.error)
                             }
                             else -> Unit
                         }
@@ -502,7 +502,7 @@ fun AddSourceScreen(
                         Text(
                             t.displayText(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (t.test.probe is HlsProbe.Served) colors.primary else Color(0xFFEF4444),
+                            color = if (t.test.probe is HlsProbe.Served) colors.primary else colors.error,
                         )
                     }
                     is HlsTestUi.Failed -> {
@@ -510,7 +510,7 @@ fun AddSourceScreen(
                         Text(
                             stringResource(R.string.setup_hls_test_failed, t.rawMessage),
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFEF4444),
+                            color = colors.error,
                         )
                     }
                     else -> Unit

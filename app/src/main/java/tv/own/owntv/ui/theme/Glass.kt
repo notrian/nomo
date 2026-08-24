@@ -122,7 +122,10 @@ data class GlassMaterial(
 )
 
 private val FloatingGlassMaterial = GlassMaterial(0.12f, 0.30f, 0.18f, 0.34f, 0.78f, 0.30f, GlassDepth.FLOATING, true)
-private val ChromeGlassMaterial = GlassMaterial(0.04f, 0.24f, 0.15f, 0.34f, 0.72f, 0.22f, GlassDepth.CHROME, true)
+// Flattened toward the feather palette's rail/util-chip look — "a light background tint...
+// never a blurred glow" — lower tintDelta/lensPeak than before; rimFocused untouched (the 2px
+// focus ring is already loud and correctly colored via OwnTVColors.focusBorder).
+private val ChromeGlassMaterial = GlassMaterial(0.02f, 0.18f, 0.15f, 0.34f, 0.72f, 0.22f, GlassDepth.CHROME, true)
 private val ContainerGlassMaterial = GlassMaterial(0f, 0.20f, 0.11f, 0.32f, 0.68f, 0.18f, GlassDepth.CONTAINER, true)
 private val InlineGlassMaterial = GlassMaterial(-0.08f, 0.18f, 0.06f, 0.30f, 0.64f, 0.14f, GlassDepth.INLINE, false)
 

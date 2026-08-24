@@ -1960,6 +1960,8 @@ private fun fontFamilyLabel(family: AppFontFamily): String = stringResource(
         AppFontFamily.PLAYFAIR_DISPLAY -> R.string.settings_font_playfair_display
         AppFontFamily.DANCING_SCRIPT -> R.string.settings_font_dancing_script
         AppFontFamily.POPPINS -> R.string.settings_font_poppins
+        AppFontFamily.ANTON -> R.string.settings_font_anton
+        AppFontFamily.IBM_PLEX_MONO -> R.string.settings_font_ibm_plex_mono
     },
 )
 

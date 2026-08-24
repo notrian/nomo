@@ -3,42 +3,47 @@ package tv.own.owntv.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Material 3 tonal palette for OwnTV (teal-seeded). NEUTRAL + secondary/tertiary roles are
- * theme-only; the `primary` roles are seeded per [AccentColor] (default teal == these values).
+ * Material 3 tonal palette for NomoTV — the "feather" ink/paper redesign (teal-seeded).
+ * NEUTRAL + secondary/tertiary roles are theme-only; the `primary` roles are seeded per
+ * [AccentColor] (default teal == these values).
  *
- * Dark uses a near-black background (#0A0A0A) so the panel colours (Phase 6) pop against the
- * deep dark surface. Neutrals (background/surface/secondary) are true greyscale — no accent hue
- * baked in — so every accent choice reads cleanly against them; only `primary` carries colour.
+ * Dark uses a near-black "ink" background (#0A0A0D) with a 5-tier surface-container ramp rising
+ * through "ink-raised" (#17171D) and "ink-card" (#1D1D24). Neutrals (background/surface/secondary)
+ * are true greyscale — no accent hue baked in — so every accent choice reads cleanly against them;
+ * only `primary` carries colour. Light mode is left close to its previous values: it was already a
+ * clean, accent-independent grayscale ramp whose near-white background reads as "paper" without
+ * needing a redesign of its own — only its shared error/live-red value moves with the rest.
  */
 
-// Brand mark color (the OwnTV play logo) — constant.
-val AccentCyan = Color(0xFF52DBC8)
+// Brand mark color (the OwnTV play logo) — constant. Now the feather-teal brand seed.
+val AccentCyan = Color(0xFF2EC4B6)
 
-// ---------------- DARK (M3 dark over near-black #0A0A0A) ----------------
-val DarkBackground = Color(0xFF0F0F0F) // Option A — nav + inter-panel gap surface
-val DarkSurface = Color(0xFF121212)
-val DarkSurfaceContainerLowest = Color(0xFF0D0D0D)
-val DarkSurfaceContainerLow = Color(0xFF1A1A1A)
-val DarkSurfaceContainer = Color(0xFF1E1E1E)
-val DarkSurfaceContainerHigh = Color(0xFF282828)
-val DarkSurfaceContainerHighest = Color(0xFF333333)
-val DarkOnSurface = Color(0xFFE1E1E1)
-val DarkOnSurfaceVariant = Color(0xFFC4C4C4)
-val DarkOutline = Color(0xFF8E8E8E)
-val DarkOutlineVariant = Color(0xFF444444)
+// ---------------- DARK ("ink/paper" — feather palette) ----------------
+val DarkBackground = Color(0xFF0A0A0D) // ink
+val DarkSurface = Color(0xFF0A0A0D)
+val DarkSurfaceContainerLowest = Color(0xFF0A0A0D)
+val DarkSurfaceContainerLow = Color(0xFF131318)
+val DarkSurfaceContainer = Color(0xFF17171D) // ink-raised
+val DarkSurfaceContainerHigh = Color(0xFF1D1D24) // ink-card
+val DarkSurfaceContainerHighest = Color(0xFF24242C)
+val DarkOnSurface = Color(0xFFF4F4F7) // paper
+val DarkOnSurfaceVariant = Color(0xFF9C9CA8) // mist
+val DarkOutline = Color(0xFF6A6A76)
+val DarkOutlineVariant = Color(0xFF2A2A32)
 // Secondary family — a neutral grey "off"/unselected tone (settings toggles, profile icon tile,
 // unselected nav rows). Deliberately colourless so it never fights whichever accent is active.
-val DarkSecondary = Color(0xFFC0C0C0)
-val DarkOnSecondary = Color(0xFF2A2A2A)
-val DarkSecondaryContainer = Color(0xFF414141)
-val DarkOnSecondaryContainer = Color(0xFFDCDCDC)
+val DarkSecondary = Color(0xFFB8B8C4)
+val DarkOnSecondary = Color(0xFF26262C)
+val DarkSecondaryContainer = Color(0xFF3A3A44)
+val DarkOnSecondaryContainer = Color(0xFFD8D8E0)
 // Tertiary stays a distinct blue — an intentional info/notice colour (offline banner, warning
 // chips), not accent-tied and not part of the neutral-grey cleanup above.
 val DarkTertiary = Color(0xFFA9CBE4)
 val DarkOnTertiary = Color(0xFF0B3445)
 val DarkTertiaryContainer = Color(0xFF294B5D)
 val DarkOnTertiaryContainer = Color(0xFFC5E7FF)
-val DarkError = Color(0xFFFFB4AB)
+// Shared with the "favorite"/live-red role — matches the feather palette's --live red exactly.
+val DarkError = Color(0xFFFF4B4B)
 
 // ---------------- LIGHT (M3 light) ----------------
 val LightBackground = Color(0xFFF8F8F8)
@@ -62,4 +67,15 @@ val LightTertiary = Color(0xFF416278)
 val LightOnTertiary = Color(0xFFFFFFFF)
 val LightTertiaryContainer = Color(0xFFC5E7FF)
 val LightOnTertiaryContainer = Color(0xFF001E2F)
-val LightError = Color(0xFFBA1A1A)
+// Darkened from the dark-theme #FF4B4B live-red for adequate contrast on a light background,
+// same hue family as DarkError.
+val LightError = Color(0xFFD63232)
+
+// ---------------- Brand mark gradient ("feather") ----------------
+// Fixed brand accent — the logo mark and a small, explicit set of gradient-fill call sites
+// (progress bars, storage bars). NOT a user-selectable accent: [AccentColor] presets are the
+// only user-facing color choice, this gradient never substitutes for one.
+val FeatherBlue = Color(0xFF3E7BFA)
+val FeatherViolet = Color(0xFF9B5DE5)
+val FeatherTeal = Color(0xFF2EC4B6)
+val FeatherGradientColors = listOf(FeatherBlue, FeatherViolet, FeatherTeal)

@@ -1,10 +1,29 @@
 package tv.own.owntv.ui.theme
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Typography
+import tv.own.owntv.R
+
+/**
+ * Fixed brand display face for hero/page/detail titles and the sidebar wordmark — used
+ * regardless of the user's chosen main font, the same way the feather-gradient brand mark is a
+ * fixed accent rather than a themeable one. Not exposed via [FontCustomization]; a user who wants
+ * Anton everywhere can still pick [AppFontFamily.ANTON] as their main/popup family separately.
+ */
+val BrandDisplayFontFamily = FontFamily(Font(R.font.anton_regular))
+
+/**
+ * Fixed brand meta/mono face for channel numbers, timestamps, and LIVE/rating/download badges —
+ * same rationale as [BrandDisplayFontFamily].
+ */
+val BrandMetaFontFamily = FontFamily(
+    Font(R.font.ibm_plex_mono_medium, FontWeight.Medium),
+    Font(R.font.ibm_plex_mono_semibold, FontWeight.SemiBold),
+)
 
 /**
  * Typography tuned for the 10-foot TV experience: larger sizes and generous weights so text

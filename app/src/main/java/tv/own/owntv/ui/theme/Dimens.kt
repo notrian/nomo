@@ -33,9 +33,16 @@ object Dimens {
     val GapMedium = 16.dp
     val GapLarge = 24.dp
 
+    // Feather radius scale (mockup: --radius-sm/md/lg). New named tokens for Phase 2/3 call sites
+    // to reference instead of inline literals; existing constants below are unrenamed to avoid
+    // touching every current call site, but line up with this scale where noted.
+    val RadiusSmall = 8.dp
+    val RadiusMedium = 14.dp
+    val RadiusLarge = 22.dp
+
     // Poster tiles (PosterCard) — values match the shipped look exactly; centralized for tuning.
-    val PosterCardCorner = 14.dp
-    val PosterArtCorner = 10.dp
+    val PosterCardCorner = 14.dp // == RadiusMedium
+    val PosterArtCorner = 8.dp // == RadiusSmall
     val PosterPadding = 6.dp
     val PosterProgressHeight = 4.dp
 
@@ -43,7 +50,7 @@ object Dimens {
     val CornerSmall = 12.dp
     val CornerMedium = 18.dp
     val CornerLarge = 24.dp
-    val CardCorner = 20.dp
+    val CardCorner = 22.dp // == RadiusLarge
 
     val FocusBorderWidth = 2.dp
 

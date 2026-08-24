@@ -8,14 +8,16 @@ import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import tv.own.owntv.R
 
-/** The five font families users can independently apply to the main UI and popup chrome. */
+/** The font families users can independently apply to the main UI and popup chrome. */
 enum class AppFontFamily {
     LORA,
     SYSTEM_SANS,
     MONOSPACE,
     PLAYFAIR_DISPLAY,
     DANCING_SCRIPT,
-    POPPINS;
+    POPPINS,
+    ANTON,
+    IBM_PLEX_MONO;
 
     companion object {
         fun fromStored(value: String?, fallback: AppFontFamily): AppFontFamily =
@@ -81,6 +83,15 @@ private val PoppinsFamily = FontFamily(
     Font(R.font.poppins_bold, FontWeight.Bold),
 )
 
+// Anton ships one weight (Regular) upstream — it's inherently a heavy display face, so a single
+// registered weight is normal for this typeface (same pattern other apps use for it).
+private val AntonFamily = FontFamily(Font(R.font.anton_regular))
+
+private val IbmPlexMonoFamily = FontFamily(
+    Font(R.font.ibm_plex_mono_medium, FontWeight.Medium),
+    Font(R.font.ibm_plex_mono_semibold, FontWeight.SemiBold),
+)
+
 fun AppFontFamily.asComposeFamily(): FontFamily = when (this) {
     AppFontFamily.LORA -> LoraFamily
     AppFontFamily.SYSTEM_SANS -> FontFamily.SansSerif
@@ -88,6 +99,8 @@ fun AppFontFamily.asComposeFamily(): FontFamily = when (this) {
     AppFontFamily.PLAYFAIR_DISPLAY -> PlayfairDisplayFamily
     AppFontFamily.DANCING_SCRIPT -> DancingScriptFamily
     AppFontFamily.POPPINS -> PoppinsFamily
+    AppFontFamily.ANTON -> AntonFamily
+    AppFontFamily.IBM_PLEX_MONO -> IbmPlexMonoFamily
 }
 
 /** Android/mpv equivalents used by subtitle renderers outside Compose typography. */
@@ -104,6 +117,8 @@ val AppFontFamily.subtitleFontResource: Int
         AppFontFamily.PLAYFAIR_DISPLAY -> R.font.playfair_display_variable
         AppFontFamily.DANCING_SCRIPT -> R.font.dancing_script_variable
         AppFontFamily.POPPINS -> R.font.poppins_regular
+        AppFontFamily.ANTON -> R.font.anton_regular
+        AppFontFamily.IBM_PLEX_MONO -> R.font.ibm_plex_mono_medium
         AppFontFamily.SYSTEM_SANS,
         AppFontFamily.MONOSPACE,
         -> 0
@@ -117,6 +132,8 @@ val AppFontFamily.mpvFamilyName: String
         AppFontFamily.PLAYFAIR_DISPLAY -> "Playfair Display"
         AppFontFamily.DANCING_SCRIPT -> "Dancing Script"
         AppFontFamily.POPPINS -> "Poppins"
+        AppFontFamily.ANTON -> "Anton"
+        AppFontFamily.IBM_PLEX_MONO -> "IBM Plex Mono"
     }
 
 val LocalMainFontFamily = staticCompositionLocalOf<FontFamily> { FontFamily.SansSerif }

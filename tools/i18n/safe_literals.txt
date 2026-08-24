@@ -4742,7 +4742,9 @@
 1	log	app/src/main/java/tv/own/owntv/ui/components/TvImeMetrics.kt	frame=$rect imeBottom=$imeBottom
 1	technical	app/src/main/java/tv/own/owntv/ui/format/TimeFormat.kt	Hm
 1	technical	app/src/main/java/tv/own/owntv/ui/format/TimeFormat.kt	hm
+1	technical	app/src/main/java/tv/own/owntv/ui/theme/FontCustomization.kt	Anton
 1	technical	app/src/main/java/tv/own/owntv/ui/theme/FontCustomization.kt	Dancing Script
+1	technical	app/src/main/java/tv/own/owntv/ui/theme/FontCustomization.kt	IBM Plex Mono
 1	technical	app/src/main/java/tv/own/owntv/ui/theme/FontCustomization.kt	Lora
 1	technical	app/src/main/java/tv/own/owntv/ui/theme/FontCustomization.kt	Playfair Display
 1	technical	app/src/main/java/tv/own/owntv/ui/theme/FontCustomization.kt	Poppins

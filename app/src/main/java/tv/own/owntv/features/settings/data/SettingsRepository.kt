@@ -150,11 +150,15 @@ class SettingsRepository(private val context: Context, private val localeStore: 
     private fun <T> prefsFlow(transform: (Preferences) -> T): Flow<T> =
         context.dataStore.data.map(transform).distinctUntilChanged()
 
-    // Glass effect defaults: OFF (empty scope) — the glass look is strictly opt-in, the app looks
-    // unchanged until the user enables it in Settings → Glass Effect. Alpha/blur defaults are the
-    // "nice preset" applied once glass is turned on.
-    private val GLASS_SCOPE_DEFAULT_BITS: Int = 0
-    private val GLASS_ALPHA_DEFAULT_PCT: Int = 56
+    // Glass effect defaults: SIDEBAR + TOPBAR only — matches the shipped design's rail/util-strip
+    // chrome, which reads as translucent+blurred (~86% opaque) even in its default state. Every
+    // other surface (dialogs, content panels, cards, mini-player) stays fully opaque by default;
+    // glass elsewhere is opt-in via Settings → Glass Effect, same as before. Alpha/blur defaults
+    // are the "nice preset" applied to whichever surfaces are in scope.
+    private val GLASS_SCOPE_DEFAULT_BITS: Int =
+        (1 shl tv.own.owntv.ui.theme.GlassSurface.SIDEBAR.ordinal) or
+            (1 shl tv.own.owntv.ui.theme.GlassSurface.TOPBAR.ordinal)
+    private val GLASS_ALPHA_DEFAULT_PCT: Int = 84
     private val GLASS_BLUR_DEFAULT_PCT: Int = 78
     private val GLASS_HIGHLIGHT_DEFAULT_PCT: Int = 55
 

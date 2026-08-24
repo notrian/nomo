@@ -23,26 +23,28 @@ enum class AccentColor(
     private val primaryContainerLight: Color,
     private val onPrimaryContainerLight: Color,
 ) {
+    // Retuned toward the "feather" brand palette (blue/violet/teal) — see Color.kt's
+    // FeatherBlue/FeatherViolet/FeatherTeal, which these three presets now seed from directly.
     TEAL(
         R.string.settings_accent_teal,
-        primaryDark = Color(0xFF52DBC8), onPrimaryDark = Color(0xFF003730),
-        primaryContainerDark = Color(0xFF004F46), onPrimaryContainerDark = Color(0xFF6FF8E4),
-        primaryLight = Color(0xFF006B5E), onPrimaryLight = Color(0xFFFFFFFF),
-        primaryContainerLight = Color(0xFF6FF8E4), onPrimaryContainerLight = Color(0xFF00201B),
+        primaryDark = Color(0xFF2EC4B6), onPrimaryDark = Color(0xFF00332C),
+        primaryContainerDark = Color(0xFF114940), onPrimaryContainerDark = Color(0xFF8FF3E3),
+        primaryLight = Color(0xFF0E8577), onPrimaryLight = Color(0xFFFFFFFF),
+        primaryContainerLight = Color(0xFFC7F5EC), onPrimaryContainerLight = Color(0xFF002420),
     ),
     BLUE(
         R.string.settings_accent_blue,
-        primaryDark = Color(0xFF6FB0FF), onPrimaryDark = Color(0xFF00315C),
-        primaryContainerDark = Color(0xFF134A7C), onPrimaryContainerDark = Color(0xFFD3E4FF),
-        primaryLight = Color(0xFF1565C0), onPrimaryLight = Color(0xFFFFFFFF),
-        primaryContainerLight = Color(0xFFD6E3FF), onPrimaryContainerLight = Color(0xFF001C3A),
+        primaryDark = Color(0xFF6FA4FF), onPrimaryDark = Color(0xFF00265E),
+        primaryContainerDark = Color(0xFF163E7A), onPrimaryContainerDark = Color(0xFFD6E5FF),
+        primaryLight = Color(0xFF2E63D6), onPrimaryLight = Color(0xFFFFFFFF),
+        primaryContainerLight = Color(0xFFD8E5FF), onPrimaryContainerLight = Color(0xFF001B3D),
     ),
     VIOLET(
         R.string.settings_accent_violet,
-        primaryDark = Color(0xFFCBBEFF), onPrimaryDark = Color(0xFF312170),
-        primaryContainerDark = Color(0xFF483A88), onPrimaryContainerDark = Color(0xFFE7DEFF),
-        primaryLight = Color(0xFF5B45C9), onPrimaryLight = Color(0xFFFFFFFF),
-        primaryContainerLight = Color(0xFFE5DEFF), onPrimaryContainerLight = Color(0xFF190066),
+        primaryDark = Color(0xFFC4A6F5), onPrimaryDark = Color(0xFF38215E),
+        primaryContainerDark = Color(0xFF4F3785), onPrimaryContainerDark = Color(0xFFE9DBFF),
+        primaryLight = Color(0xFF7B3FD1), onPrimaryLight = Color(0xFFFFFFFF),
+        primaryContainerLight = Color(0xFFE8DBFF), onPrimaryContainerLight = Color(0xFF22004D),
     ),
     GREEN(
         R.string.settings_accent_green,

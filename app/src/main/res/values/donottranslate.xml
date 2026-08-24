@@ -19,4 +19,6 @@
     <string name="settings_font_playfair_display" translatable="false">Playfair Display</string>
     <string name="settings_font_dancing_script" translatable="false">Dancing Script</string>
     <string name="settings_font_poppins" translatable="false">Poppins</string>
+    <string name="settings_font_anton" translatable="false">Anton</string>
+    <string name="settings_font_ibm_plex_mono" translatable="false">IBM Plex Mono</string>
 </resources>

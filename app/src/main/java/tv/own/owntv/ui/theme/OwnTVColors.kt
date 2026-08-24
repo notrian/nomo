@@ -54,6 +54,15 @@ data class OwnTVColors(
     val card: Color get() = surfaceContainerHigh
     val rail: Color get() = surfaceContainer
     val accent: Color get() = primary
+
+    /**
+     * Semantic alias for validation/failure text. Same value as [favorite] by construction — the
+     * feather palette's --live red already does double duty for both roles in the source design
+     * (the mockup's favorited-heart icon uses the same red as its LIVE badge) — but call sites read
+     * more clearly as `colors.error` than `colors.favorite` when they're not actually about
+     * favoriting. Replaces ad hoc `Color(0xFFEF4444)` literals scattered across settings screens.
+     */
+    val error: Color get() = favorite
 }
 
 /** Parses "#RRGGBB" / "RRGGBB" (also 8-digit AARRGGBB) into a [Color]; null when invalid. */

@@ -88,6 +88,7 @@ import tv.own.owntv.ui.components.InAppToast
 import tv.own.owntv.ui.components.rememberInAppToast
 import tv.own.owntv.ui.components.OwnTVButton
 import tv.own.owntv.ui.components.OwnTVButtonStyle
+import tv.own.owntv.ui.components.OwnTVIconButton
 import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.components.OwnTVSpinner
 import tv.own.owntv.ui.components.PosterCard
@@ -1144,22 +1145,80 @@ private fun EpisodeView(
         }
     }
 
+    val colors = OwnTVTheme.colors
+    // "Next up" — reused from EpisodeDetailPane's own Play-next-up affordance below, so the hero's
+    // primary action and the detail pane's agree on what "next" means.
+    val heroNextUp = nextUpId?.let { id -> episodes.firstOrNull { it.id == id } }
+    val heroMeta = listOfNotNull(
+        series.year?.let { localizedInteger(it, grouping = false) },
+        series.rating?.takeIf { it > 0 }?.let { stringResource(R.string.content_rating, it) },
+    ).joinToString(stringResource(R.string.content_metadata_separator))
+
     Column(
         modifier = modifier.fillMaxSize().onFocusChanged { if (it.hasFocus) onChildFocused() }
             .padding(horizontal = Dimens.ScreenPaddingH, vertical = Dimens.ScreenPaddingV),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            OwnTVButton(label = stringResource(R.string.common_back), onClick = { vm.closeSeries() }, style = OwnTVButtonStyle.SECONDARY, icon = OwnTVIcon.CHEVRON)
-            Text(series.name, style = MaterialTheme.typography.headlineLarge, color = OwnTVTheme.colors.onSurface)
-            Spacer(Modifier.weight(1f))
-            OwnTVButton(
-                label = if (favoriteIds.contains(series.id)) stringResource(R.string.content_favorited) else stringResource(R.string.content_favorite),
-                onClick = { vm.toggleFavorite(series) },
-                style = OwnTVButtonStyle.SECONDARY,
-                icon = OwnTVIcon.FAVORITE,
+        // Compact hero — backdrop + title + meta + Play(next up)/Favorite, matching the mockup's
+        // detail-hero visual language sized down (a fixed height, not 56vh) to leave most of this
+        // fixed-height TV screen for the season/episode browser below, which the web mockup handles
+        // by just letting the whole page scroll.
+        Box(modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(18.dp))) {
+            Box(modifier = Modifier.fillMaxSize().background(colors.surfaceContainerLowest)) {
+                val art = series.backdropUrl?.takeIf { it.isNotBlank() } ?: series.posterUrl
+                if (!art.isNullOrBlank()) {
+                    AsyncImage(model = art, contentDescription = null, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                }
+            }
+            Box(
+                modifier = Modifier.fillMaxSize().background(
+                    androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        0f to colors.background.copy(alpha = 0.94f),
+                        0.62f to colors.background.copy(alpha = 0.6f),
+                        1f to Color.Transparent,
+                    ),
+                ),
             )
-            // "Hide watched" toggle (moved up from the season rail). Shown only once the series has at
-            // least one watched episode; filters the active season's episode list.
+            Row(modifier = Modifier.fillMaxSize().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                OwnTVIconButton(icon = OwnTVIcon.BACK, contentDescription = stringResource(R.string.common_back), onClick = { vm.closeSeries() })
+                Spacer(Modifier.width(20.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        series.name,
+                        style = MaterialTheme.typography.headlineLarge.copy(fontFamily = tv.own.owntv.ui.theme.BrandDisplayFontFamily, fontWeight = FontWeight.Normal),
+                        color = colors.onSurface,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    )
+                    if (heroMeta.isNotBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(heroMeta, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+                    }
+                    series.plot?.takeIf { it.isNotBlank() }?.let {
+                        Spacer(Modifier.height(4.dp))
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 520.dp))
+                    }
+                }
+                Spacer(Modifier.width(16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (heroNextUp != null) {
+                        OwnTVButton(label = stringResource(R.string.content_play), onClick = { startEpisode(heroNextUp) }, icon = OwnTVIcon.PLAY)
+                    }
+                    OwnTVIconButton(
+                        icon = OwnTVIcon.FAVORITE,
+                        contentDescription = if (favoriteIds.contains(series.id)) stringResource(R.string.content_remove_favourite) else stringResource(R.string.content_add_favourite),
+                        onClick = { vm.toggleFavorite(series) },
+                        active = favoriteIds.contains(series.id),
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+
+        // Secondary, less-frequent controls — Back/Favorite moved into the hero above.
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Spacer(Modifier.weight(1f))
+            // "Hide watched" toggle. Shown only once the series has at least one watched episode;
+            // filters the active season's episode list.
             if (completedIds.isNotEmpty()) {
                 OwnTVButton(
                     label = if (hideWatched) stringResource(R.string.content_show_watched) else stringResource(R.string.content_hide_watched),

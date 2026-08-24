@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -69,17 +68,10 @@ import tv.own.owntv.ui.components.TextInputDialog
 import tv.own.owntv.core.model.DownloadStatus
 import tv.own.owntv.features.live.LiveKey
 import tv.own.owntv.features.live.displayLabel
-import tv.own.owntv.features.settings.data.PanelSection
-import tv.own.owntv.features.settings.data.BrowseColumnGap
-import tv.own.owntv.features.settings.data.BrowseColumnDividerSpace
 import tv.own.owntv.features.settings.data.BrowseContainerPadding
-import tv.own.owntv.features.settings.data.browsePanelGapTotal
-import tv.own.owntv.features.settings.data.computePanelWidths
 import tv.own.owntv.features.settings.data.SettingsRepository
-import tv.own.owntv.features.settings.rememberPanelShares
-import tv.own.owntv.features.shell.components.CategoryRail
+import tv.own.owntv.features.shell.components.CategoryFilterRow
 import tv.own.owntv.features.shell.components.MediaDetailsScreen
-import tv.own.owntv.features.shell.components.PreviewPane
 import tv.own.owntv.features.shell.components.RailCategory
 import tv.own.owntv.ui.components.MoveOrderOverlay
 import tv.own.owntv.ui.components.InAppToast
@@ -192,8 +184,7 @@ fun MoviesScreen(
     val selFocus = remember { FocusRequester() }
     val firstItemFocus = remember { FocusRequester() }
 
-    // CH+- key paging: shared settings + hoisted rail state. gridPaneFocused/railPaneFocused let
-    // chNavPaging consume the keys only for whichever pane is focused.
+    // CH+- key paging: shared settings + hoisted grid-focus state.
     val settingsVm: tv.own.owntv.features.settings.SettingsViewModel = koinViewModel()
     val chNavEnabled by settingsVm.chNavEnabled.collectAsStateWithLifecycle()
     val chNavUpSkip by settingsVm.chNavUpSkip.collectAsStateWithLifecycle()
@@ -212,30 +203,25 @@ fun MoviesScreen(
     LaunchedEffect(selectedKey, rememberMovies) {
         if (!rememberMovies) { runCatching { gridState.scrollToItem(0) }; runCatching { listState.scrollToItem(0) } }
     }
-    val catListState = rememberLazyListState()
     val chromeScrollThresholdPx = with(LocalDensity.current) { 8.dp.roundToPx() }
     val contentScrolled by remember(
         effectiveGridState,
         effectiveListState,
-        catListState,
         viewMode,
         chromeScrollThresholdPx,
     ) {
         androidx.compose.runtime.derivedStateOf {
-            val contentMoved = if (viewMode == SettingsRepository.VodViewMode.GRID) {
+            if (viewMode == SettingsRepository.VodViewMode.GRID) {
                 effectiveGridState.firstVisibleItemIndex > 0 ||
                     effectiveGridState.firstVisibleItemScrollOffset > chromeScrollThresholdPx
             } else {
                 effectiveListState.firstVisibleItemIndex > 0 ||
                     effectiveListState.firstVisibleItemScrollOffset > chromeScrollThresholdPx
             }
-            contentMoved || catListState.firstVisibleItemIndex > 0 ||
-                catListState.firstVisibleItemScrollOffset > chromeScrollThresholdPx
         }
     }
     LaunchedEffect(contentScrolled) { onContentScrolled(contentScrolled) }
     var gridPaneFocused by remember { mutableStateOf(false) }
-    var railPaneFocused by remember { mutableStateOf(false) }
     // Returning from the player: scroll to and focus the movie you just played (waits for the grid to load).
     LaunchedEffect(restoreFocus, movies.itemCount) {
         if (!restoreFocus || movies.itemCount == 0) return@LaunchedEffect
@@ -307,56 +293,53 @@ fun MoviesScreen(
         contextMovieIndex = -1
     }
 
-    // Manual panel widths (Settings → Panel Width Adjustment). The saved percentages now resolve
-    // against the inside of one shared content container; no stored value is rewritten.
-    val panelShares = rememberPanelShares(PanelSection.MOVIES, settingsVm)
-    BoxWithConstraints(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .padding(BrowseContainerPadding)
             .onFocusChanged { if (it.hasFocus) onChildFocused() },
     ) {
-    val previewVisible = panelShares?.preview != 0
-    val innerGapTotal = browsePanelGapTotal(previewVisible)
-    val panels = panelShares?.let { computePanelWidths(it, maxWidth, innerGapTotal) }
-    Row(
-        modifier = Modifier
-            .fillMaxSize(),
-    ) {
-        CategoryRail(
-            width = panels?.category ?: Dimens.RailWidthFixed,
+        Text(stringResource(R.string.content_section_category, stringResource(R.string.common_nav_movies), selectedLabel), style = MaterialTheme.typography.headlineLarge, color = OwnTVTheme.colors.onSurface)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            pluralStringResource(R.plurals.content_count_movies, count, selectedLabel, count),
+            style = MaterialTheme.typography.titleMedium,
+            color = OwnTVTheme.colors.primary,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(Modifier.height(14.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = vm::setSearchQuery,
+                placeholder = stringResource(R.string.content_search_movies, selectedLabel),
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(10.dp))
+            SortChip(mode = sortMode, onToggle = vm::toggleSort, playlistLabel = stringResource(R.string.content_provider))
+            Spacer(Modifier.width(10.dp))
+            // View mode (#10): poster wall vs a compact list (more titles at once).
+            tv.own.owntv.ui.components.OwnTVButton(
+                label = stringResource(if (viewMode == SettingsRepository.VodViewMode.GRID) R.string.settings_view_grid else R.string.settings_view_list),
+                onClick = vm::toggleViewMode,
+                icon = if (viewMode == SettingsRepository.VodViewMode.GRID) OwnTVIcon.MENU else OwnTVIcon.MOVIES,
+                style = tv.own.owntv.ui.components.OwnTVButtonStyle.SECONDARY,
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+
+        // Horizontal genre/category filter row (matches the mockup's .filter-rail) — replaces the
+        // vertical CategoryRail. Real playlists can have far more categories than fit as chips, so
+        // CategoryFilterRow itself handles overflow via a "More" picker.
+        CategoryFilterRow(
             categories = railItems.map { RailCategory(it.displayLabel(R.string.content_category_all_movies), it.icon, showGenreDot = it.key is LiveKey.Folder) },
             selectedIndex = selectedIndex,
             onSelect = { idx -> railItems.getOrNull(idx)?.let { vm.select(it.key) } },
-            listState = catListState,
-            showPanel = false,
-            modifier = Modifier
-                .onFocusChanged { railPaneFocused = it.hasFocus }
-                .chNavPaging(
-                    enabled = chNavEnabled,
-                    upSkip = chNavUpSkip,
-                    downSkip = chNavDownSkip,
-                    isFocused = { railPaneFocused },
-                    lastIndex = { railItems.size - 1 },
-                    currentTargetIndex = { selectedIndex },
-                    onJumpToIndex = { idx -> railItems.getOrNull(idx)?.let { vm.select(it.key) } },
-                ),
         )
+        Spacer(Modifier.height(14.dp))
 
-        Spacer(Modifier.width(BrowseColumnGap))
         Box(
-            Modifier
-                .width(BrowseColumnDividerSpace)
-                .fillMaxHeight()
-                .padding(vertical = 2.dp)
-                .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
-        )
-
-        Spacer(Modifier.width(BrowseColumnGap))
-
-        Column(
             modifier = Modifier
-                .then(if (panels != null) Modifier.width(panels.list) else Modifier.weight(1.8f))
                 .fillMaxSize()
                 .onFocusChanged { gridPaneFocused = it.hasFocus }
                 // CH+- key paging for this movies list/grid. currentTargetIndex falls back to the
@@ -418,35 +401,6 @@ fun MoviesScreen(
                 .trapVerticalFocusExit()
                 .focusGroup()
         ) {
-            Text(stringResource(R.string.content_section_category, stringResource(R.string.common_nav_movies), selectedLabel), style = MaterialTheme.typography.headlineLarge, color = OwnTVTheme.colors.onSurface)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                pluralStringResource(R.plurals.content_count_movies, count, selectedLabel, count),
-                style = MaterialTheme.typography.titleMedium,
-                color = OwnTVTheme.colors.primary,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.height(14.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = vm::setSearchQuery,
-                    placeholder = stringResource(R.string.content_search_movies, selectedLabel),
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(10.dp))
-                SortChip(mode = sortMode, onToggle = vm::toggleSort, playlistLabel = stringResource(R.string.content_provider))
-                Spacer(Modifier.width(10.dp))
-                // View mode (#10): poster wall vs a compact list (more titles at once).
-                tv.own.owntv.ui.components.OwnTVButton(
-                    label = stringResource(if (viewMode == SettingsRepository.VodViewMode.GRID) R.string.settings_view_grid else R.string.settings_view_list),
-                    onClick = vm::toggleViewMode,
-                    icon = if (viewMode == SettingsRepository.VodViewMode.GRID) OwnTVIcon.MENU else OwnTVIcon.MOVIES,
-                    style = tv.own.owntv.ui.components.OwnTVButtonStyle.SECONDARY,
-                )
-            }
-            Spacer(Modifier.height(14.dp))
-
             if (movies.itemCount == 0) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -524,33 +478,6 @@ fun MoviesScreen(
                 }
             }
         }
-
-        if (previewVisible) {
-            Spacer(Modifier.width(BrowseColumnGap))
-            Box(
-                Modifier
-                    .width(BrowseColumnDividerSpace)
-                    .fillMaxHeight()
-                    .padding(vertical = 2.dp)
-                    .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
-            )
-            Spacer(Modifier.width(BrowseColumnGap))
-            Box(
-                modifier = Modifier
-                    .then(if (panels != null) Modifier.width(panels.preview) else Modifier.weight(1f))
-                    .fillMaxSize()
-                    .padding(BrowseContainerPadding),
-            ) {
-                MovieDetailsPane(
-                    movie = selectedMovie,
-                    meta = selectedMovieMeta?.takeIf { it.movieId == selectedMovie?.id }?.cache,
-                    tmdbWins = metadataMode.tmdbWins,
-                    resumePositionMs = selectedProgress?.takeIf { !vm.isMovieCompleted(it) }?.positionMs?.takeIf { it > 0 },
-                    downloadStrip = selectedMovie?.let { m -> downloadStates[m.id]?.let { tv.own.owntv.ui.components.downloadStripFor(listOf(it)) } },
-                )
-            }
-        }
-    }
     }
 
     resumePrompt?.let { (m, pos) ->
@@ -838,100 +765,6 @@ private fun MovieContextMenu(
             Spacer(Modifier.height(4.dp))
             OwnTVButton(stringResource(R.string.content_close), onClick = onDismiss, modifier = Modifier.fillMaxWidth())
         }
-    }
-}
-
-@Composable
-private fun MovieDetailsPane(
-    movie: MovieEntity?,
-    meta: tv.own.owntv.core.database.entity.MetadataCacheEntity?,
-    tmdbWins: Boolean,
-    resumePositionMs: Long? = null,
-    downloadStrip: tv.own.owntv.ui.components.DownloadStripState? = null,
-) {
-    val colors = OwnTVTheme.colors
-    if (movie == null) {
-        PreviewPane(hint = stringResource(R.string.content_focus_movie))
-        return
-    }
-    // Merge (§7.1 / §4.1). Provider+TMDB → provider wins (provider ?: tmdb); TMDB-only → tmdb wins
-    // (tmdb ?: provider). TMDB fields are never written back to the content row.
-    val providerPoster = movie.posterUrl?.takeIf { it.isNotBlank() }
-    val tmdbPoster = tv.own.owntv.core.metadata.MetadataImages.poster(meta?.posterPath)
-    val posterArt = (if (tmdbWins) tmdbPoster ?: providerPoster else providerPoster ?: tmdbPoster)
-        ?: movie.backdropUrl?.takeIf { it.isNotBlank() }
-        ?: tv.own.owntv.core.metadata.MetadataImages.backdrop(meta?.backdropPath)
-    val providerPlot = movie.plot?.takeIf { it.isNotBlank() }
-    val plot = if (tmdbWins) meta?.overview ?: providerPlot else providerPlot ?: meta?.overview
-    // Outer details Box carries the rounded panel (Phase 6); no clip/background here.
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(Dimens.GapLarge),
-    ) {
-        // Non-focusable download status strip — only present while this movie is actually downloading.
-        if (downloadStrip != null) {
-            tv.own.owntv.ui.components.DownloadStatusStrip(downloadStrip)
-            Spacer(Modifier.height(12.dp))
-        }
-        // Tall portrait poster (like the list / a phone screen), centred in the pane.
-        Box(modifier = Modifier.fillMaxWidth().height(340.dp), contentAlignment = Alignment.Center) {
-            Box(
-                modifier = Modifier.fillMaxHeight().aspectRatio(2f / 3f).clip(RoundedCornerShape(12.dp)).background(colors.surfaceContainerLowest),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (!posterArt.isNullOrBlank()) {
-                    AsyncImage(
-                        model = posterArt,
-                        contentDescription = null,
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else {
-                    OwnTVIcon(OwnTVIcon.MOVIES, tint = colors.onSurfaceVariant, modifier = Modifier.height(48.dp))
-                }
-            }
-        }
-        Spacer(Modifier.height(14.dp))
-        // Always-visible, non-focusable resume label (kept above the title, not further down in the
-        // pane, since movie metadata below can push a lower placement out of view once it scrolls long).
-        if (resumePositionMs != null) {
-            Text(
-                stringResource(R.string.content_resume_at, tv.own.owntv.ui.components.formatTimestamp(resumePositionMs)),
-                style = MaterialTheme.typography.labelMedium,
-                color = colors.primary,
-            )
-            Spacer(Modifier.height(6.dp))
-        }
-        Text(movie.name, style = MaterialTheme.typography.titleLarge, color = colors.onSurface)
-        Spacer(Modifier.height(6.dp))
-        Text(metaLine(movie, meta, tmdbWins), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
-        // Genres & cast are TMDB-only (§7.1) — a whole layer the provider never had.
-        val genres = jsonList(meta?.genresJson)
-        if (genres.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            Text(genres.joinToString(stringResource(R.string.content_genres_separator)), style = MaterialTheme.typography.labelMedium, color = colors.primary)
-        }
-        if (!plot.isNullOrBlank()) {
-            Spacer(Modifier.height(12.dp))
-            Text(plot, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, maxLines = 6, overflow = TextOverflow.Ellipsis)
-        }
-        val cast = tv.own.owntv.core.metadata.MetadataCast.names(meta?.castJson)
-        if (cast.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
-            Text(stringResource(R.string.content_media_cast), style = MaterialTheme.typography.labelMedium, color = colors.onSurface)
-            Spacer(Modifier.height(2.dp))
-            Text(cast.take(6).joinToString(", "), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        }
-        Spacer(Modifier.height(20.dp))
-        // Display-only pane (§11.1): actions live on the poster — OK plays, long-press opens the menu
-        // (Favorite / Download / TMDB Details). Keeping the pane non-focusable fixes grid→pane navigation.
-        Text(
-            stringResource(R.string.content_ok_play_options),
-            style = MaterialTheme.typography.labelMedium,
-            color = colors.onSurfaceVariant,
-        )
     }
 }
 

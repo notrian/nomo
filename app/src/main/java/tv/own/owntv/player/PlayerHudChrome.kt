@@ -159,19 +159,20 @@ internal fun TopBar(
 /** The channel logo tile, falling back to the first letters of the channel name. */
 @Composable
 private fun ChannelLogo(logoUrl: String?, title: String?, size: Int, modifier: Modifier = Modifier) {
+    val colors = OwnTVTheme.colors
     Box(
-        modifier.size(size.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF004F46)),
+        modifier.size(size.dp).clip(RoundedCornerShape(10.dp)).background(colors.primaryContainer),
         contentAlignment = Alignment.Center,
     ) {
         if (!logoUrl.isNullOrBlank()) AsyncImage(model = logoUrl, contentDescription = null, modifier = Modifier.fillMaxSize())
-        else Text((title ?: "?").take(3).uppercase(), style = MaterialTheme.typography.labelMedium, color = Color(0xFF6FF8E4), fontWeight = FontWeight.Bold)
+        else Text((title ?: "?").take(3).uppercase(), style = MaterialTheme.typography.labelMedium, color = colors.onPrimaryContainer, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
 private fun LiveBadge() {
     Row(
-        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xCCDC3232)).padding(horizontal = 8.dp, vertical = 2.dp),
+        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(OwnTVTheme.colors.favorite.copy(alpha = 0.8f)).padding(horizontal = 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Box(Modifier.size(6.dp).clip(CircleShape).background(Color.White))
@@ -191,9 +192,9 @@ internal fun ChannelOsdCard(
         modifier = modifier.widthIn(max = 340.dp).clip(RoundedCornerShape(14.dp)).background(Color.Black.copy(alpha = 0.55f)).padding(14.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF004F46)), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(OwnTVTheme.colors.primaryContainer), contentAlignment = Alignment.Center) {
             if (!logoUrl.isNullOrBlank()) AsyncImage(model = logoUrl, contentDescription = null, modifier = Modifier.fillMaxSize())
-            else Text((title ?: "?").take(3).uppercase(), style = MaterialTheme.typography.labelMedium, color = Color(0xFF6FF8E4), fontWeight = FontWeight.Bold)
+            else Text((title ?: "?").take(3).uppercase(), style = MaterialTheme.typography.labelMedium, color = OwnTVTheme.colors.onPrimaryContainer, fontWeight = FontWeight.Bold)
         }
         Column {
             Text(title ?: "", style = MaterialTheme.typography.titleSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -220,6 +221,7 @@ internal fun ChannelCard(player: PlaybackEngine, modifier: Modifier = Modifier) 
  *  visible instead of mysterious. [error] turns it into the failure readout for the same number. */
 @Composable
 internal fun ChannelNumberCard(digits: String, error: String? = null, modifier: Modifier = Modifier) {
+    val accent = OwnTVTheme.colors.primary
     val caret = rememberInfiniteTransition(label = "tuneCaret")
     val caretAlpha by caret.animateFloat(
         initialValue = 1f, targetValue = 0f,
@@ -240,14 +242,14 @@ internal fun ChannelNumberCard(digits: String, error: String? = null, modifier: 
                 val barHeight = 3.dp.toPx()
                 val top = Offset(0f, size.height - barHeight)
                 drawRect(Color.White.copy(alpha = 0.08f), topLeft = top, size = Size(size.width, barHeight))
-                drawRect(TEAL, topLeft = top, size = Size(size.width * countdown.value, barHeight))
+                drawRect(accent, topLeft = top, size = Size(size.width * countdown.value, barHeight))
             }
             .padding(bottom = 3.dp),
     ) {
         Column(Modifier.padding(start = 16.dp, end = 20.dp, top = 12.dp, bottom = 12.dp)) {
             Text(
                 stringResource(R.string.player_channel_label),
-                style = MaterialTheme.typography.labelSmall, color = TEAL, fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp,
             )
             Row(verticalAlignment = Alignment.Bottom) {
@@ -259,7 +261,7 @@ internal fun ChannelNumberCard(digits: String, error: String? = null, modifier: 
                 if (error == null) {
                     Box(
                         Modifier.padding(start = 4.dp, bottom = 4.dp).width(3.dp).height(22.dp)
-                            .clip(RoundedCornerShape(2.dp)).background(TEAL.copy(alpha = caretAlpha)),
+                            .clip(RoundedCornerShape(2.dp)).background(accent.copy(alpha = caretAlpha)),
                     )
                 }
             }

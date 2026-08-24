@@ -15,6 +15,10 @@
     <string name="common_clear">Clear</string>
     <!-- Translators: Generic retry button to retry a failed operation. -->
     <string name="common_retry">Retry</string>
+    <!-- Translators: Trailing chip label that opens the full category list when it doesn't fit as chips. -->
+    <string name="common_more">More</string>
+    <!-- Translators: Title of the popup listing every category when opened from the "More" chip. -->
+    <string name="common_all_categories">All categories</string>
     <!-- Translators: Generic create button to create a new item. -->
     <string name="common_create">Create</string>
     <!-- Translators: Generic reset button to reset settings to defaults. -->

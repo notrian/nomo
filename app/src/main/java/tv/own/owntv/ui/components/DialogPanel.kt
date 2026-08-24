@@ -36,7 +36,7 @@ import tv.own.owntv.ui.theme.glass
 @Composable
 fun Modifier.dialogPanel(
     width: Dp = 440.dp,
-    corner: Dp = 20.dp,
+    corner: Dp = 22.dp, // radius-lg, matches .modal-panel
     padding: Dp = 24.dp,
     fill: Color? = null,
     scroll: Boolean = true,
@@ -59,10 +59,14 @@ fun Modifier.dialogPanel(
     return if (scroll) base.verticalScroll(rememberScrollState()).padding(padding) else base.padding(padding)
 }
 
-/** Shared modal wash: glass keeps spatial context; solid mode remains stronger but avoids black slabs. */
+/**
+ * Shared modal wash: glass keeps spatial context; solid mode remains stronger but avoids black
+ * slabs. Solid alpha (0.60) matches the mockup's `.modal-backdrop{background:rgba(6,6,8,.6)}`
+ * exactly — dialogs are opaque-panel-on-dimmed-backdrop by default (see Glass.kt's default scope).
+ */
 @Composable
 fun Modifier.modalScrim(strength: Float = 1f): Modifier {
     val glassy = LocalGlass.current.isGlassy(GlassSurface.DIALOGS)
-    val alpha = (if (glassy) 0.30f else 0.58f) * strength.coerceIn(0f, 1.35f)
+    val alpha = (if (glassy) 0.30f else 0.60f) * strength.coerceIn(0f, 1.35f)
     return background(Color.Black.copy(alpha = alpha.coerceAtMost(0.72f)))
 }

@@ -4731,7 +4731,6 @@
 1	performance	app/src/main/java/tv/own/owntv/ui/components/NavLadder.kt	navLadderIcon
 1	empty	app/src/main/java/tv/own/owntv/ui/components/NumberInputDialog.kt	\0
 1	empty	app/src/main/java/tv/own/owntv/ui/components/OwnTVTextField.kt	\0
-1	technical	app/src/main/java/tv/own/owntv/ui/components/PosterCard.kt	✓
 1	empty	app/src/main/java/tv/own/owntv/ui/components/SetTmdbNameDialog.kt	\0
 1	performance	app/src/main/java/tv/own/owntv/ui/components/StateViews.kt	spinner
 1	performance	app/src/main/java/tv/own/owntv/ui/components/StateViews.kt	spinnerAngle

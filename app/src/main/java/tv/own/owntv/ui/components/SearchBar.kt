@@ -83,7 +83,7 @@ fun SearchBar(
     val keyboard = LocalSoftwareKeyboardController.current
     val tvImeWatcher = LocalTvImeWatcher.current
     val tvImeMetrics = LocalTvImeMetrics.current
-    val shape = RoundedCornerShape(8.dp) // Phase 7 — slightly-rounded rect, not a full pill
+    val shape = RoundedCornerShape(14.dp) // radius-md, matches .search-input
     val focused = pillFocused || editing
     // Glassy only when a surface is given and it's in the active glass scope (matches FocusableSurface).
     val glassy = surface != null && LocalGlass.current.isGlassy(surface)
@@ -123,8 +123,8 @@ fun SearchBar(
             .then(
                 // Frosted glass pill when this surface is glassy; plain tonal fill otherwise. glass()
                 // early-returns on a transparent fill, but our fill is always opaque here.
-                if (surface != null) Modifier.glass(surface = surface, baseFill = colors.surfaceContainerHigh, shape = shape, frostScale = 0.6f)
-                else Modifier.background(colors.surfaceContainerHigh)
+                if (surface != null) Modifier.glass(surface = surface, baseFill = colors.surfaceContainer, shape = shape, frostScale = 0.6f)
+                else Modifier.background(colors.surfaceContainer) // == ink-raised, matches .search-input
             )
             .border(
                 width = if (focused) tv.own.owntv.ui.theme.LocalFocusBorderWidth.current else 1.dp,

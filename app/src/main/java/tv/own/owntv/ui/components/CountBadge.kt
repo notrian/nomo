@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import tv.own.owntv.R
+import tv.own.owntv.ui.theme.BrandMetaFontFamily
 import tv.own.owntv.ui.theme.OwnTVTheme
 import java.text.NumberFormat
 
@@ -32,6 +33,9 @@ fun CountBadge(
     Text(
         text = stringResource(R.string.common_number_grouped, count),
         style = MaterialTheme.typography.labelMedium,
+        // Fixed brand meta face — matches the mockup's nav-count/badge treatment
+        // (--font-mono), independent of the user's chosen UI font.
+        fontFamily = BrandMetaFontFamily,
         color = fg,
         fontWeight = FontWeight.Bold,
         modifier = modifier

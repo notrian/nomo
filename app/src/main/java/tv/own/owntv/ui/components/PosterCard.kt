@@ -17,8 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,6 +27,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import tv.own.owntv.R
 import tv.own.owntv.ui.theme.Dimens
+import tv.own.owntv.ui.theme.FeatherGradientColors
 import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.OwnTVTheme
 
@@ -54,8 +54,7 @@ fun PosterCard(
         selected = selected,
         shape = RoundedCornerShape(Dimens.PosterCardCorner),
         surface = GlassSurface.CARDS,
-//        focusedScale = 1.03f,
-        focusedScale = 1.00f,
+        focusedScale = 1.06f, // matches the mockup's .card:focus-visible{transform:scale(1.06)}
         glowElevation = 8,
         focusedContainerColor = colors.surfaceContainerHigh,
         unfocusedContainerColor = colors.surfaceContainerHigh,
@@ -80,26 +79,29 @@ fun PosterCard(
                     }
                 }
 
+                // Badge/scrim fills read from the theme's background color at partial alpha —
+                // matches the mockup's rgba(10,10,13,.65) badges (== --ink at 65%) exactly in dark
+                // mode, and adapts sensibly in light mode instead of a hardcoded black plate.
                 if (rating != null && rating > 0) {
                     Row(
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(6.dp)
                             .clip(RoundedCornerShape(50))
-                            .background(Color.Black.copy(alpha = 0.55f))
+                            .background(colors.background.copy(alpha = 0.65f))
                             .padding(horizontal = 8.dp, vertical = 3.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         OwnTVIcon(OwnTVIcon.STAR, tint = colors.accent, filled = true, modifier = Modifier.size(12.dp))
                         Spacer(Modifier.size(4.dp))
-                        Text(stringResource(R.string.common_rating, rating), style = MaterialTheme.typography.labelMedium, color = Color.White)
+                        Text(stringResource(R.string.common_rating, rating), style = MaterialTheme.typography.labelMedium, color = colors.onSurface)
                     }
                 }
 
-                // Watched: dim the art and stamp a teal ✓ badge (bottom-end). No progress bar is drawn
-                // for a completed item (the caller passes progressFraction = null in that case).
+                // Watched: dim the art and stamp a checkmark badge (bottom-end). No progress bar is
+                // drawn for a completed item (the caller passes progressFraction = null in that case).
                 if (completed) {
-                    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)))
+                    Box(Modifier.fillMaxSize().background(colors.background.copy(alpha = 0.45f)))
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -109,7 +111,7 @@ fun PosterCard(
                             .background(colors.primary),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("✓", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = colors.onPrimary)
+                        OwnTVIcon(OwnTVIcon.CHECK, tint = colors.onPrimary, modifier = Modifier.size(12.dp))
                     }
                 }
 
@@ -128,13 +130,14 @@ fun PosterCard(
                             .align(Alignment.BottomStart)
                             .fillMaxWidth()
                             .height(Dimens.PosterProgressHeight)
-                            .background(Color.Black.copy(alpha = 0.4f)),
+                            .background(colors.background.copy(alpha = 0.4f)),
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(progressFraction.coerceIn(0f, 1f))
                                 .height(Dimens.PosterProgressHeight)
-                                .background(colors.primary),
+                                // Matches the mockup's .progress i{background:var(--feather-gradient)}
+                                .background(Brush.linearGradient(FeatherGradientColors)),
                         )
                     }
                 }

@@ -22,19 +22,18 @@ import tv.own.owntv.ui.theme.LocalGlass
 import tv.own.owntv.ui.theme.OwnTVTheme
 import tv.own.owntv.ui.theme.glass
 
-// Per-region colour identity from the established shell design. The three roles remain distinct in
-// both themes without collapsing the interface into the greyer generic M3 elevation ladder.
+// Per-region fills now source directly from the neutral ink/paper surface ramp instead of a
+// separate green-tinted palette — "no accent hue baked in" applies here too. Kept as three named
+// roles (rather than collapsing call sites onto OwnTVTheme.colors directly) so panel regions can
+// still be told apart in one place if a future pass wants to re-differentiate them.
 val RailPanelFill: Color
-    @Composable @ReadOnlyComposable get() =
-        if (OwnTVTheme.colors.isDark) Color(0xFF111C18) else Color(0xFFE6EEE9)
+    @Composable @ReadOnlyComposable get() = OwnTVTheme.colors.surfaceContainer
 
 val ContentPanelFill: Color
-    @Composable @ReadOnlyComposable get() =
-        if (OwnTVTheme.colors.isDark) Color(0xFF0A1512) else Color(0xFFF2F7F4)
+    @Composable @ReadOnlyComposable get() = OwnTVTheme.colors.surfaceContainerLowest
 
 val PreviewPanelFill: Color
-    @Composable @ReadOnlyComposable get() =
-        if (OwnTVTheme.colors.isDark) Color(0xFF15201D) else Color(0xFFDEE9E3)
+    @Composable @ReadOnlyComposable get() = OwnTVTheme.colors.surfaceContainerLow
 
 /**
  * Phase 6 — a rounded visual container matching the new-shell mockup's "panel 2/3/4" look: large rounded

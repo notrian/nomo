@@ -25,7 +25,7 @@ enum class OwnTVIcon {
     BACK, VOLUME_HIGH, VOLUME_LOW, VOLUME_MUTE, ASPECT, FULLSCREEN, FULLSCREEN_EXIT, PIP, CLOSE,
     SORT, SWAP, HEADPHONES, EXPAND,
     IMAGE, INFO, LANGUAGE, GEAR, SPARKLE,
-    CATCHUP,
+    CATCHUP, CHECK,
 }
 
 @Composable
@@ -323,6 +323,17 @@ fun OwnTVIcon(
                     },
                     tint, style = Fill,
                 )
+            }
+            OwnTVIcon.CHECK -> {
+                // Simple checkmark — replaces the literal "✓" text glyph PosterCard used to draw
+                // for its watched badge, so it scales/tints like every other icon instead of
+                // depending on whatever font happens to be active.
+                val check = Path().apply {
+                    moveTo(p(4.5f, 12.5f).x, p(4.5f, 12.5f).y)
+                    lineTo(p(9.5f, 17.5f).x, p(9.5f, 17.5f).y)
+                    lineTo(p(19.5f, 6.5f).x, p(19.5f, 6.5f).y)
+                }
+                drawPath(check, tint, style = Stroke(width = 2.6f * s, cap = StrokeCap.Round, join = StrokeJoin.Round))
             }
             OwnTVIcon.VOLUME_HIGH -> {
                 drawPath(speaker(::p), tint, style = Fill)

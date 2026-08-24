@@ -37,7 +37,7 @@ fun SortChip(
         onClick = onToggle,
         // Same height + shape as SearchBar so the two read as one row of controls.
         modifier = modifier.height(48.dp),
-        shape = RoundedCornerShape(8.dp), // Phase 7 — slightly-rounded rect, not a full pill
+        shape = RoundedCornerShape(14.dp), // radius-md, matches .chip-btn
         focusedContainerColor = colors.surfaceContainerHighest,
         unfocusedContainerColor = colors.surfaceContainerHigh,
         selectedContainerColor = colors.surfaceContainerHigh,

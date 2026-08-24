@@ -65,8 +65,8 @@ fun InAppToast(state: InAppToastState) {
         Text(
             msg,
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(OwnTVTheme.colors.surfaceContainerHigh)
+                .clip(RoundedCornerShape(14.dp)) // radius-md, matches .toast
+                .background(OwnTVTheme.colors.surfaceContainerHigh) // == ink-card
                 .padding(horizontal = 22.dp, vertical = 12.dp),
             style = MaterialTheme.typography.titleMedium,
             color = OwnTVTheme.colors.onSurface,

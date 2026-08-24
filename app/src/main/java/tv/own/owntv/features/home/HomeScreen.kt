@@ -731,7 +731,7 @@ private fun TrendingHeroSection(
                         color = Color.White,
                         modifier = Modifier.align(Alignment.TopStart).padding(10.dp)
                             .clip(RoundedCornerShape(50))
-                            .background(Color(0xDC030A08))
+                            .background(colors.background.copy(alpha = 0.86f))
                             .border(1.dp, Color.White.copy(alpha = 0.22f), RoundedCornerShape(50))
                             .padding(horizontal = 9.dp, vertical = 5.dp),
                     )
@@ -752,14 +752,14 @@ private fun TrendingHeroSection(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                         TrendingTypeBadge(typeLabel)
                         snapshot.year?.let {
-                            Text(it.toString(), style = MaterialTheme.typography.titleSmall, color = Color(0xFFD4DED9))
+                            Text(it.toString(), style = MaterialTheme.typography.titleSmall, color = colors.onSurfaceVariant)
                         }
-                        Text("•", style = MaterialTheme.typography.titleSmall, color = Color(0xFFD4DED9))
+                        Text("•", style = MaterialTheme.typography.titleSmall, color = colors.onSurfaceVariant)
                         snapshot.rating?.let {
                             Text(
                                 text = stringResource(R.string.content_rating, it),
                                 style = MaterialTheme.typography.titleSmall,
-                                color = Color(0xFFFFE071),
+                                color = colors.primary,
                                 fontWeight = FontWeight.SemiBold,
                             )
                         }
@@ -790,7 +790,7 @@ private fun TrendingHeroSection(
                         Text(
                             text = snapshot.providerRawName,
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFFC8D4CF),
+                            color = colors.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -843,7 +843,7 @@ private fun TrendingHeroSection(
                 Column(
                     modifier = Modifier.width(310.dp).align(Alignment.Bottom)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0x75040C09))
+                        .background(colors.background.copy(alpha = 0.46f))
                         .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
                         .padding(18.dp),
                 ) {
@@ -961,7 +961,7 @@ private fun TrendingActionButton(
         modifier = modifier
             .height(42.dp),
     ) { focused ->
-        val contentColor = if (primary && !focused) Color(0xFF081205) else colors.onSurface
+        val contentColor = if (primary && !focused) colors.onPrimary else colors.onSurface
         Row(
             modifier = Modifier.padding(horizontal = 15.dp),
             verticalAlignment = Alignment.CenterVertically,

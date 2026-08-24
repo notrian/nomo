@@ -65,12 +65,16 @@
     <string name="common_nav_movies">Movies</string>
     <!-- Translators: Navigation label for the Series screen in the sidebar. -->
     <string name="common_nav_series">TV Shows</string>
+    <!-- Translators: Navigation label for the Favorites screen in the sidebar. -->
+    <string name="common_nav_favorites">Favorites</string>
     <!-- Translators: Navigation label for the Downloads screen in the sidebar. Also used in download notifications. -->
     <string name="common_nav_downloads">Downloads</string>
     <!-- Translators: Navigation label for the TV Guide screen in the sidebar. -->
     <string name="common_nav_guide">Guide</string>
     <!-- Translators: Navigation label for the Settings screen in the sidebar. -->
     <string name="common_nav_settings">Settings</string>
+    <!-- Translators: Label for the sidebar toggle that keeps it expanded (showing labels) at all times. -->
+    <string name="shell_pin_sidebar">Pin sidebar</string>
     <!-- Translators: Status text when no content source is configured. -->
     <string name="shell_no_source">No source</string>
     <!-- Translators: Generic error message for unexpected failures. -->

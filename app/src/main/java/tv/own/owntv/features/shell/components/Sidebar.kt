@@ -50,7 +50,6 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import tv.own.owntv.R
 import tv.own.owntv.features.shell.MainSection
-import tv.own.owntv.ui.components.FaNavIcon
 import tv.own.owntv.ui.components.FocusableSurface
 import tv.own.owntv.ui.components.OwnTVAvatar
 import tv.own.owntv.ui.components.OwnTVIcon
@@ -69,6 +68,8 @@ fun Sidebar(
     selected: MainSection,
     onSelect: (MainSection) -> Unit,
     visibleSections: Set<MainSection>,
+    pinned: Boolean = false,
+    onTogglePin: () -> Unit = {},
     avatarId: Int,
     onPickAvatar: () -> Unit,
     profileName: String,
@@ -85,8 +86,9 @@ fun Sidebar(
     val scope = rememberCoroutineScope()
 
     // Expands to show labels the moment focus is anywhere inside the rail; collapses to icon-only
-    // the moment focus leaves it for the content pane. No manual toggle needed.
-    val expanded = hasFocus
+    // the moment focus leaves it for the content pane — unless the user has pinned it open
+    // (matches the mockup's .rail.pinned / "Pin sidebar" row).
+    val expanded = hasFocus || pinned
 
     val focusSection = when {
         selected == MainSection.SEARCH -> MainSection.HOME
@@ -182,6 +184,9 @@ fun Sidebar(
                     Modifier.focusRequester(selectedItemFocusRequester)
                 } else Modifier,
             )
+            Spacer(Modifier.height(10.dp))
+
+            PinToggleRow(expanded = expanded, pinned = pinned, onClick = onTogglePin)
             Spacer(Modifier.height(10.dp))
 
             SourceDisplay(expanded = expanded, sourceSummary = sourceSummary)
@@ -329,6 +334,83 @@ private fun SearchEntry(expanded: Boolean, onClick: () -> Unit) {
     )
 }
 
+/** Keeps the rail expanded at all times — matches the mockup's `.rail-pin` row. Same icon/lead-in
+ *  animation language as [NavItem], but toggles a boolean instead of navigating. */
+@Composable
+private fun PinToggleRow(expanded: Boolean, pinned: Boolean, onClick: () -> Unit) {
+    val colors = OwnTVTheme.colors
+    val contentColor = if (pinned) colors.primary else colors.onSurfaceVariant
+    val rowHorizontalPadding by animateDpAsState(
+        targetValue = if (expanded) 8.dp else 0.dp,
+        animationSpec = tween(220),
+        label = "pinRowPadding",
+    )
+    val iconLeadPadding by animateDpAsState(
+        targetValue = if (expanded) 0.dp else 18.dp,
+        animationSpec = tween(220),
+        label = "pinIconPadding",
+    )
+    FocusableSurface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(6.dp),
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        selectedContainerColor = Color.Transparent,
+        showFocusBorder = false,
+        renderSelectionContainer = false,
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .padding(horizontal = rowHorizontalPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+        ) {
+            OwnTVIcon(
+                icon = OwnTVIcon.HISTORY, // clock-face mark, matches the mockup's pin icon exactly
+                tint = contentColor,
+                modifier = Modifier.padding(start = iconLeadPadding).size(18.dp),
+            )
+            androidx.compose.animation.AnimatedVisibility(
+                visible = expanded,
+                enter = androidx.compose.animation.fadeIn(tween(220)) +
+                    androidx.compose.animation.expandHorizontally(tween(220), expandFrom = Alignment.Start),
+                exit = androidx.compose.animation.fadeOut(tween(180)) +
+                    androidx.compose.animation.shrinkHorizontally(tween(180), shrinkTowards = Alignment.Start),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.width(14.dp))
+                    Text(
+                        stringResource(R.string.shell_pin_sidebar),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = contentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Nav-rail icon per destination — ported/rebuilt to match the mockup, see [OwnTVIcon]. Public:
+ *  also used by [tv.own.owntv.features.settings.NavMenuSettingsScreen]'s show/hide list. */
+val MainSection.navIcon: OwnTVIcon
+    get() = when (this) {
+        MainSection.SEARCH -> OwnTVIcon.SEARCH
+        MainSection.HOME -> OwnTVIcon.HOME
+        MainSection.LIVE_TV -> OwnTVIcon.LIVE_TV
+        MainSection.MOVIES -> OwnTVIcon.MOVIES
+        MainSection.SERIES -> OwnTVIcon.SERIES
+        MainSection.FAVORITES -> OwnTVIcon.FAVORITE
+        MainSection.DOWNLOADS -> OwnTVIcon.DOWNLOADS
+        MainSection.EPG -> OwnTVIcon.EPG
+        MainSection.SETTINGS -> OwnTVIcon.GEAR
+    }
+
 @Composable
 private fun NavItem(
     label: String,
@@ -400,9 +482,10 @@ private fun NavItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
         ) {
-            FaNavIcon(
-                section = section,
-                color = iconColor,
+            OwnTVIcon(
+                icon = section.navIcon,
+                tint = iconColor,
+                filled = true,
                 modifier = Modifier
                     .padding(start = iconLeadPadding)
                     .size(20.dp),

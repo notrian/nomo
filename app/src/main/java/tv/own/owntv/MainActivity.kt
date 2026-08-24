@@ -219,6 +219,7 @@ class MainActivity : ComponentActivity() {
             val customAccent by viewModel.customAccent.collectAsStateWithLifecycle()
             val focusHighlight by viewModel.focusHighlight.collectAsStateWithLifecycle()
             val focusHighlightWidth by viewModel.focusHighlightWidth.collectAsStateWithLifecycle()
+            val sidebarPinned by viewModel.sidebarPinned.collectAsStateWithLifecycle()
             val uiZoomPercent by viewModel.uiZoomPercent.collectAsStateWithLifecycle()
             val fontCustomization by viewModel.fontCustomization.collectAsStateWithLifecycle()
             val animationLevel by viewModel.animationLevel.collectAsStateWithLifecycle()
@@ -425,6 +426,8 @@ class MainActivity : ComponentActivity() {
                                 onSetFontCustomization = viewModel::setFontCustomization,
                                 avatarId = avatarId,
                                 onSetAvatar = viewModel::setAvatar,
+                                sidebarPinned = sidebarPinned,
+                                onSetSidebarPinned = viewModel::setSidebarPinned,
                                 profileName = profileName,
                                 sourceSummary = sourceSummary,
                                 playlists = playlists,

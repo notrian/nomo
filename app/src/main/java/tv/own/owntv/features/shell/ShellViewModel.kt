@@ -48,6 +48,7 @@ enum class MainSection(@param:androidx.annotation.StringRes val labelRes: Int) {
     LIVE_TV(tv.own.owntv.R.string.common_nav_live_tv),
     MOVIES(tv.own.owntv.R.string.common_nav_movies),
     SERIES(tv.own.owntv.R.string.common_nav_series),
+    FAVORITES(tv.own.owntv.R.string.common_nav_favorites),
     DOWNLOADS(tv.own.owntv.R.string.common_nav_downloads),
     EPG(tv.own.owntv.R.string.common_nav_guide),
     SETTINGS(tv.own.owntv.R.string.common_nav_settings); // pinned at the bottom of the nav
@@ -57,21 +58,24 @@ enum class MainSection(@param:androidx.annotation.StringRes val labelRes: Int) {
 
     companion object {
         /** Fixed order of the browse icons in the rail (Settings is pinned separately at the bottom). */
-        val browseOrder: List<MainSection> = listOf(HOME, MOVIES, SERIES, LIVE_TV, EPG, DOWNLOADS)
+        val browseOrder: List<MainSection> = listOf(HOME, MOVIES, SERIES, LIVE_TV, EPG, FAVORITES, DOWNLOADS)
 
-        /** All six browse items — the default `visibleSections` value so the rail shows everything until
+        /** All browse items — the default `visibleSections` value so the rail shows everything until
          *  the first real emission lands (avoids a cold-start flicker to an empty rail). */
         val allBrowse: Set<MainSection> = browseOrder.toSet()
 
         /**
          * DYNAMIC-mode rule (v4.3.0): which browse icons show given the active playlist's content caps.
          * Home always; Live & Guide when there are channels; Movies/Series when their tables have rows;
-         * Downloads when Movies OR Series exist (Live has no download). Settings is always pinned and not
-         * part of this set. Shared between ShellViewModel (the rail) and SettingsViewModel (the settings
+         * Downloads when Movies OR Series exist (Live has no download). Favorites is always shown
+         * alongside Home — it's a personal, cross-content-type list, not tied to one playlist's caps,
+         * so hiding it based on sync state would be surprising. Settings is always pinned and not part
+         * of this set. Shared between ShellViewModel (the rail) and SettingsViewModel (the settings
          * screen's read-only DYNAMIC rows) so both agree on what DYNAMIC mode shows.
          */
         fun dynamicVisible(hasLive: Boolean, hasMovies: Boolean, hasSeries: Boolean): Set<MainSection> = buildSet {
             add(HOME)
+            add(FAVORITES)
             if (hasLive) { add(LIVE_TV); add(EPG) }
             if (hasMovies) add(MOVIES)
             if (hasSeries) add(SERIES)
@@ -296,6 +300,14 @@ class ShellViewModel(
     /** Focus ring width in dp (#121). */
     val focusHighlightWidth: StateFlow<Int> = settings.focusHighlightWidth
         .stateIn(viewModelScope, SharingStarted.Eagerly, 2)
+
+    /** Keep the sidebar expanded at all times, not just while it holds focus. */
+    val sidebarPinned: StateFlow<Boolean> = settings.sidebarPinned
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    fun setSidebarPinned(pinned: Boolean) {
+        viewModelScope.launch { settings.setSidebarPinned(pinned) }
+    }
 
     /** Glass effect background image path (app-private); blank = no background (panels solid). */
     val bgImagePath: StateFlow<String> = settings.bgImagePath

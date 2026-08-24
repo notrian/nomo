@@ -105,6 +105,8 @@ fun OwnTVShell(
     onSetFontCustomization: (tv.own.owntv.ui.theme.FontCustomization) -> Unit,
     avatarId: Int,
     onSetAvatar: (Int) -> Unit,
+    sidebarPinned: Boolean = false,
+    onSetSidebarPinned: (Boolean) -> Unit = {},
     profileName: String,
     sourceSummary: String?,
     playlists: List<tv.own.owntv.core.database.entity.SourceEntity> = emptyList(),
@@ -615,6 +617,13 @@ fun OwnTVShell(
                             modifier = Modifier.fillMaxSize(),
                         )
 
+                        selectedSection == MainSection.FAVORITES -> tv.own.owntv.features.favorites.FavoritesScreen(
+                            onFullscreen = { openFullscreen() },
+                            onChildFocused = { focusedLayer = ShellLayer.CONTENT },
+                            onOpenSeries = { onSelectSection(MainSection.SERIES) },
+                            modifier = Modifier.fillMaxSize(),
+                        )
+
                         selectedSection == MainSection.DOWNLOADS -> DownloadsScreen(
                             onFullscreen = { openFullscreen() },
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
@@ -715,6 +724,8 @@ fun OwnTVShell(
                     onSelectSection(section)
                 },
                 visibleSections = visibleSections,
+                pinned = sidebarPinned,
+                onTogglePin = { onSetSidebarPinned(!sidebarPinned) },
                 avatarId = avatarId,
                 onPickAvatar = { showAvatarPicker = true },
                 profileName = profileName,
@@ -1110,14 +1121,16 @@ private val MainSection.emptyIcon: OwnTVIcon
         MainSection.LIVE_TV -> OwnTVIcon.LIVE_TV
         MainSection.MOVIES -> OwnTVIcon.MOVIES
         MainSection.SERIES -> OwnTVIcon.SERIES
+        MainSection.FAVORITES -> OwnTVIcon.FAVORITE
         MainSection.DOWNLOADS -> OwnTVIcon.DOWNLOADS
         MainSection.EPG -> OwnTVIcon.EPG
-        MainSection.SETTINGS -> OwnTVIcon.SETTINGS
+        MainSection.SETTINGS -> OwnTVIcon.GEAR
     }
 
 private fun railCategoriesFor(section: MainSection): List<RailCategory> = when (section) {
     MainSection.SEARCH -> emptyList()
     MainSection.HOME -> emptyList()
+    MainSection.FAVORITES -> emptyList()
     MainSection.EPG -> emptyList()
     MainSection.LIVE_TV -> listOf(
         RailCategory("Favorites", OwnTVIcon.FAVORITE, tv.own.owntv.R.string.content_category_favorites),
@@ -1156,7 +1169,7 @@ private fun railCategoriesFor(section: MainSection): List<RailCategory> = when (
 
 @Composable
 private fun placeholderCount(section: MainSection): String = when (section) {
-    MainSection.SEARCH, MainSection.HOME, MainSection.EPG, MainSection.SETTINGS -> ""
+    MainSection.SEARCH, MainSection.HOME, MainSection.FAVORITES, MainSection.EPG, MainSection.SETTINGS -> ""
     MainSection.LIVE_TV -> stringResource(R.string.content_zero_channels)
     MainSection.MOVIES -> stringResource(R.string.content_zero_movies)
     MainSection.SERIES -> stringResource(R.string.content_zero_series)

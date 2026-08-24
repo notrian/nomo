@@ -38,9 +38,9 @@ import org.koin.androidx.compose.koinViewModel
 import tv.own.owntv.R
 import tv.own.owntv.features.settings.data.SettingsRepository
 import tv.own.owntv.features.shell.MainSection
-import tv.own.owntv.ui.components.FaNavIcon
-import tv.own.owntv.ui.components.FocusableSurface
+import tv.own.owntv.features.shell.components.navIcon
 import tv.own.owntv.ui.components.OwnTVIcon
+import tv.own.owntv.ui.components.FocusableSurface
 import tv.own.owntv.ui.components.roundedPanel
 import tv.own.owntv.ui.theme.Dimens
 import tv.own.owntv.ui.theme.GlassSurface
@@ -162,9 +162,10 @@ private fun NavMenuRow(
                     .background(colors.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
-                FaNavIcon(
-                    section = section,
-                    color = if (shown) colors.onPrimaryContainer else colors.onPrimaryContainer.copy(alpha = 0.4f),
+                OwnTVIcon(
+                    icon = section.navIcon,
+                    tint = if (shown) colors.onPrimaryContainer else colors.onPrimaryContainer.copy(alpha = 0.4f),
+                    filled = true,
                     modifier = Modifier.size(22.dp),
                 )
             }

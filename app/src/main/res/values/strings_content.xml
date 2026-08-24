@@ -161,6 +161,20 @@
     <string name="content_focus_series">Focus a series, press OK to view episodes.</string>
     <!-- Translators: Empty-state hint on the series episode list when no episode is focused. -->
     <string name="content_focus_episode">Focus an episode to see details.</string>
+    <!-- Translators: Title of the Favorites screen. -->
+    <string name="content_favorites_title">Favorites</string>
+    <!-- Translators: Subtitle under the Favorites screen title. -->
+    <string name="content_favorites_subtitle">Everything you’ve marked with the heart icon.</string>
+    <!-- Translators: Empty-state title on the Favorites screen when nothing is favorited yet. -->
+    <string name="content_favorites_empty_title">No favorites yet</string>
+    <!-- Translators: Empty-state body on the Favorites screen when nothing is favorited yet. -->
+    <string name="content_favorites_empty_body">Long-press the heart on any title to keep it here.</string>
+    <!-- Translators: Section header above favorited live TV channels on the Favorites screen. -->
+    <string name="content_favorites_section_live">Live TV</string>
+    <!-- Translators: Section header above favorited movies on the Favorites screen. -->
+    <string name="content_favorites_section_movies">Movies</string>
+    <!-- Translators: Section header above favorited series on the Favorites screen. -->
+    <string name="content_favorites_section_series">TV Shows</string>
     <!-- Translators: Empty-state message on the Movies screen when the category has no movies. -->
     <string name="content_no_movies_here">No movies here.</string>
     <!-- Translators: Empty-state message on the Series screen when the category has no series. -->

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,6 +53,9 @@ import tv.own.owntv.ui.components.ContentPanelFill
 import tv.own.owntv.ui.components.roundedPanel
 import tv.own.owntv.ui.components.trapVerticalFocusExit
 import tv.own.owntv.ui.theme.Dimens
+import tv.own.owntv.ui.theme.FeatherBlue
+import tv.own.owntv.ui.theme.FeatherGradientColors
+import tv.own.owntv.ui.theme.FeatherTeal
 import tv.own.owntv.ui.theme.OwnTVTheme
 
 /** Phase 12 — the Downloads section: offline movies & episodes with progress and playback. */
@@ -221,6 +226,21 @@ private fun SectionHeader(group: DownloadGroup, count: Int) {
     }
 }
 
+/** Shared linear progress track — matches the mockup's `.dl-storage-bar`/`.dprogress` (a rounded
+ *  translucent track with a feather-gradient fill), used by both [StorageBar] and the per-download
+ *  progress in [StatusLine] instead of each hand-rolling the same two-Box pattern. */
+@Composable
+private fun LinearProgress(fraction: Float, height: androidx.compose.ui.unit.Dp, modifier: Modifier = Modifier) {
+    val colors = OwnTVTheme.colors
+    Box(modifier.fillMaxWidth().height(height).clip(RoundedCornerShape(height / 2)).background(colors.surfaceContainerLowest)) {
+        Box(
+            Modifier.fillMaxWidth(fraction.coerceIn(0f, 1f)).fillMaxHeight()
+                .clip(RoundedCornerShape(height / 2))
+                .background(Brush.linearGradient(FeatherGradientColors)),
+        )
+    }
+}
+
 @Composable
 private fun StorageBar(info: tv.own.owntv.core.download.DownloadStorageInfo) {
     val colors = OwnTVTheme.colors
@@ -231,9 +251,7 @@ private fun StorageBar(info: tv.own.owntv.core.download.DownloadStorageInfo) {
             Text(stringResource(R.string.content_downloads_storage_free, storageSize(info.freeBytes, stringResource(R.string.content_downloads_unknown_size)), storageSize(info.totalBytes, stringResource(R.string.content_downloads_unknown_size))), style = MaterialTheme.typography.labelLarge, color = colors.primary, fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(6.dp))
-        Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(colors.surfaceContainerLowest)) {
-            Box(Modifier.fillMaxWidth(info.usedFraction).height(6.dp).clip(RoundedCornerShape(3.dp)).background(colors.primary))
-        }
+        LinearProgress(fraction = info.usedFraction, height = 7.dp)
     }
 }
 
@@ -260,7 +278,10 @@ private fun DownloadRow(
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Text(download.title, style = MaterialTheme.typography.titleMedium, color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(download.title, style = MaterialTheme.typography.titleMedium, color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                DlBadge(download.status)
+            }
             folderCrumb(download.filePath, stringResource(R.string.content_downloads_folder_separator))?.let {
                 Text(it, style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
@@ -283,6 +304,33 @@ private fun DownloadRow(
     }
 }
 
+/**
+ * 3-state status pill — matches the mockup's `.dl-badge.complete/.downloading/.queued`. Complete
+ * and downloading use the fixed feather teal/blue (a status meaning, not the user's accent, same
+ * rationale as the LIVE badge's fixed red elsewhere); failed reuses the shared error token; queued
+ * and paused fall back to a neutral tonal pill. Reuses the existing group-label strings
+ * ("Active"/"Waiting"/"Completed"/"Failed") so badge and section-header wording stay in sync.
+ */
+@Composable
+private fun DlBadge(status: DownloadStatus) {
+    val colors = OwnTVTheme.colors
+    val (bg, fg, label) = when (status) {
+        DownloadStatus.COMPLETED -> Triple(FeatherTeal.copy(alpha = 0.16f), FeatherTeal, stringResource(R.string.content_downloads_completed_group))
+        DownloadStatus.RUNNING -> Triple(FeatherBlue.copy(alpha = 0.16f), FeatherBlue, stringResource(R.string.content_downloads_active))
+        DownloadStatus.PAUSED -> Triple(colors.onSurface.copy(alpha = 0.08f), colors.onSurfaceVariant, stringResource(R.string.content_downloads_active))
+        DownloadStatus.QUEUED -> Triple(colors.onSurface.copy(alpha = 0.08f), colors.onSurfaceVariant, stringResource(R.string.content_downloads_waiting))
+        DownloadStatus.FAILED -> Triple(colors.error.copy(alpha = 0.16f), colors.error, stringResource(R.string.content_downloads_failed_group))
+    }
+    Text(
+        label.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.Bold,
+        color = fg,
+        maxLines = 1,
+        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(bg).padding(horizontal = 10.dp, vertical = 5.dp),
+    )
+}
+
 /** Shows the folder path of a download, e.g. "Series › Game of Thrones › Season 6". */
 private fun folderCrumb(filePath: String?, separator: String): String? {
     val parts = filePath?.substringBeforeLast('/')?.split('/')?.filter { it.isNotBlank() } ?: return null
@@ -301,9 +349,7 @@ private fun StatusLine(d: DownloadEntity) {
         else -> { // RUNNING / PAUSED
             val frac = if (d.totalBytes > 0) (d.downloadedBytes.toFloat() / d.totalBytes).coerceIn(0f, 1f) else 0f
             Column {
-                Box(Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)).background(colors.surfaceContainerLowest)) {
-                    Box(Modifier.fillMaxWidth(frac).height(4.dp).clip(RoundedCornerShape(2.dp)).background(colors.primary))
-                }
+                LinearProgress(fraction = frac, height = 4.dp)
                 Spacer(Modifier.height(4.dp))
                 Text(
                     if (d.totalBytes > 0) stringResource(R.string.content_downloads_progress, (frac * 100).toInt(), sizeMb(d.downloadedBytes, stringResource(R.string.content_downloads_unknown_size)), sizeMb(d.totalBytes, stringResource(R.string.content_downloads_unknown_size)))

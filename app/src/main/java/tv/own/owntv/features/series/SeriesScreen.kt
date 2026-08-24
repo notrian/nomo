@@ -79,7 +79,7 @@ import tv.own.owntv.features.settings.data.browsePanelGapTotal
 import tv.own.owntv.features.settings.data.computePanelWidths
 import tv.own.owntv.features.settings.data.SettingsRepository
 import tv.own.owntv.features.settings.rememberPanelShares
-import tv.own.owntv.features.shell.components.CategoryRail
+import tv.own.owntv.features.shell.components.CategoryFilterRow
 import tv.own.owntv.features.shell.components.PreviewPane
 import tv.own.owntv.features.shell.components.RailCategory
 import tv.own.owntv.ui.components.FocusableSurface
@@ -296,9 +296,7 @@ private fun SeriesGrid(
     LaunchedEffect(selectedKey, rememberSeries) {
         if (!rememberSeries) { runCatching { gridState.scrollToItem(0) }; runCatching { listState.scrollToItem(0) } }
     }
-    val catListState = androidx.compose.foundation.lazy.rememberLazyListState()
     var gridPaneFocused by remember { mutableStateOf(false) }
-    var railPaneFocused by remember { mutableStateOf(false) }
 
     // Back from a show's episodes: scroll the grid to the poster you opened, then focus it. It may be
     // far down and not composed, so without scrolling the focus request fails and focus falls to the
@@ -380,56 +378,41 @@ private fun SeriesGrid(
         contextSeriesIndex = -1
     }
 
-    // Manual panel widths (Settings → Panel Width Adjustment). The saved percentages now resolve
-    // against the inside of one shared content container; no stored value is rewritten.
-    val panelShares = rememberPanelShares(PanelSection.SERIES, settingsVm)
-    BoxWithConstraints(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .padding(BrowseContainerPadding)
             .onFocusChanged { if (it.hasFocus) onChildFocused() },
     ) {
-    val previewVisible = panelShares?.preview != 0
-    val innerGapTotal = browsePanelGapTotal(previewVisible)
-    val panels = panelShares?.let { computePanelWidths(it, maxWidth, innerGapTotal) }
-    Row(
-        modifier = Modifier
-            .fillMaxSize(),
-    ) {
-        CategoryRail(
-            width = panels?.category ?: Dimens.RailWidthFixed,
+        Text(stringResource(R.string.content_section_category, stringResource(R.string.common_nav_series), selectedLabel), style = MaterialTheme.typography.headlineLarge, color = OwnTVTheme.colors.onSurface)
+        Spacer(Modifier.height(4.dp))
+        Text(pluralStringResource(R.plurals.content_count_series, count, selectedLabel, count), style = MaterialTheme.typography.titleMedium, color = OwnTVTheme.colors.primary, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(14.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SearchBar(query = searchQuery, onQueryChange = vm::setSearchQuery, placeholder = stringResource(R.string.content_search_series, selectedLabel), modifier = Modifier.weight(1f))
+            Spacer(Modifier.width(10.dp))
+            SortChip(mode = sortMode, onToggle = vm::toggleSort, playlistLabel = stringResource(R.string.content_provider))
+            Spacer(Modifier.width(10.dp))
+            tv.own.owntv.ui.components.OwnTVButton(
+                label = stringResource(if (viewMode == SettingsRepository.VodViewMode.GRID) R.string.settings_view_grid else R.string.settings_view_list),
+                onClick = vm::toggleViewMode,
+                icon = if (viewMode == SettingsRepository.VodViewMode.GRID) OwnTVIcon.MENU else OwnTVIcon.SERIES,
+                style = tv.own.owntv.ui.components.OwnTVButtonStyle.SECONDARY,
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+
+        // Horizontal genre/category filter row (matches the mockup's .filter-rail) — replaces the
+        // vertical CategoryRail. CategoryFilterRow handles overflow via a "More" picker.
+        CategoryFilterRow(
             categories = railItems.map { RailCategory(it.displayLabel(R.string.content_category_all_series), it.icon, showGenreDot = it.key is LiveKey.Folder) },
             selectedIndex = selectedIndex,
             onSelect = { idx -> railItems.getOrNull(idx)?.let { vm.select(it.key) } },
-            listState = catListState,
-            showPanel = false,
-            modifier = Modifier
-                .onFocusChanged { railPaneFocused = it.hasFocus }
-                .chNavPaging(
-                    enabled = chNavEnabled,
-                    upSkip = chNavUpSkip,
-                    downSkip = chNavDownSkip,
-                    isFocused = { railPaneFocused },
-                    lastIndex = { railItems.size - 1 },
-                    currentTargetIndex = { selectedIndex },
-                    onJumpToIndex = { idx -> railItems.getOrNull(idx)?.let { vm.select(it.key) } },
-                ),
         )
+        Spacer(Modifier.height(14.dp))
 
-        Spacer(Modifier.width(BrowseColumnGap))
         Box(
-            Modifier
-                .width(BrowseColumnDividerSpace)
-                .fillMaxHeight()
-                .padding(vertical = 2.dp)
-                .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
-        )
-
-        Spacer(Modifier.width(BrowseColumnGap))
-
-        Column(
             modifier = Modifier
-                .then(if (panels != null) Modifier.width(panels.list) else Modifier.weight(1.8f))
                 .fillMaxSize()
                 .onFocusChanged { gridPaneFocused = it.hasFocus }
                 .chNavPaging(
@@ -486,24 +469,6 @@ private fun SeriesGrid(
                 .trapVerticalFocusExit()
                 .focusGroup()
         ) {
-            Text(stringResource(R.string.content_section_category, stringResource(R.string.common_nav_series), selectedLabel), style = MaterialTheme.typography.headlineLarge, color = OwnTVTheme.colors.onSurface)
-            Spacer(Modifier.height(4.dp))
-            Text(pluralStringResource(R.plurals.content_count_series, count, selectedLabel, count), style = MaterialTheme.typography.titleMedium, color = OwnTVTheme.colors.primary, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(14.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SearchBar(query = searchQuery, onQueryChange = vm::setSearchQuery, placeholder = stringResource(R.string.content_search_series, selectedLabel), modifier = Modifier.weight(1f))
-                Spacer(Modifier.width(10.dp))
-                SortChip(mode = sortMode, onToggle = vm::toggleSort, playlistLabel = stringResource(R.string.content_provider))
-                Spacer(Modifier.width(10.dp))
-                tv.own.owntv.ui.components.OwnTVButton(
-                    label = stringResource(if (viewMode == SettingsRepository.VodViewMode.GRID) R.string.settings_view_grid else R.string.settings_view_list),
-                    onClick = vm::toggleViewMode,
-                    icon = if (viewMode == SettingsRepository.VodViewMode.GRID) OwnTVIcon.MENU else OwnTVIcon.SERIES,
-                    style = tv.own.owntv.ui.components.OwnTVButtonStyle.SECONDARY,
-                )
-            }
-            Spacer(Modifier.height(14.dp))
-
             if (series.itemCount == 0) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -574,96 +539,6 @@ private fun SeriesGrid(
                 }
             }
         }
-
-        if (previewVisible) {
-            Spacer(Modifier.width(BrowseColumnGap))
-            Box(
-                Modifier
-                    .width(BrowseColumnDividerSpace)
-                    .fillMaxHeight()
-                    .padding(vertical = 2.dp)
-                    .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
-            )
-            Spacer(Modifier.width(BrowseColumnGap))
-            Box(
-                modifier = Modifier
-                    .then(if (panels != null) Modifier.width(panels.preview) else Modifier.weight(1f))
-                    .fillMaxSize()
-                    .padding(BrowseContainerPadding),
-            ) {
-                val s = selectedSeries
-                if (s == null) {
-                    PreviewPane(hint = stringResource(R.string.content_focus_series))
-                } else {
-                // Gap-fill merge (§7.1/§4.1): provider wins unless the mode is TMDB-only.
-                val meta = selectedSeriesMeta?.takeIf { it.seriesId == s.id }?.cache
-                val tmdbWins = metadataMode.tmdbWins
-                val providerPoster = s.posterUrl?.takeIf { it.isNotBlank() }
-                val tmdbPoster = tv.own.owntv.core.metadata.MetadataImages.poster(meta?.posterPath)
-                val art = (if (tmdbWins) tmdbPoster ?: providerPoster else providerPoster ?: tmdbPoster)
-                    ?: s.backdropUrl?.takeIf { it.isNotBlank() }
-                    ?: tv.own.owntv.core.metadata.MetadataImages.backdrop(meta?.backdropPath)
-                val plot = if (tmdbWins) meta?.overview ?: s.plot?.takeIf { it.isNotBlank() }
-                    else s.plot?.takeIf { it.isNotBlank() } ?: meta?.overview
-                val year = if (tmdbWins) meta?.year ?: s.year else s.year ?: meta?.year
-                val rating = if (tmdbWins) meta?.rating?.takeIf { it > 0 } ?: s.rating?.takeIf { it > 0 }
-                    else s.rating?.takeIf { it > 0 } ?: meta?.rating?.takeIf { it > 0 }
-                val genres = jsonStringList(meta?.genresJson)
-                val cast = tv.own.owntv.core.metadata.MetadataCast.names(meta?.castJson)
-                // Outer details Box no longer carries a panel — content floats directly on the
-                // screen background, seamed off from the list by the hairline divider above.
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(Dimens.GapLarge),
-                ) {
-                    // Non-focusable status strip — only present while this series' episodes are downloading.
-                    tv.own.owntv.ui.components.downloadStripFor(selectedSeriesDownloads)?.let {
-                        tv.own.owntv.ui.components.DownloadStatusStrip(it)
-                        Spacer(Modifier.height(12.dp))
-                    }
-                    // Tall portrait poster (like the list / a phone screen), centred in the pane.
-                    Box(modifier = Modifier.fillMaxWidth().height(340.dp), contentAlignment = Alignment.Center) {
-                        Box(
-                            modifier = Modifier.fillMaxHeight().aspectRatio(2f / 3f).clip(RoundedCornerShape(12.dp)).background(OwnTVTheme.colors.surfaceContainerLowest),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            if (!art.isNullOrBlank()) {
-                                AsyncImage(model = art, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-                            } else {
-                                OwnTVIcon(OwnTVIcon.SERIES, tint = OwnTVTheme.colors.onSurfaceVariant, modifier = Modifier.height(48.dp))
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(14.dp))
-                    Text(s.name, style = MaterialTheme.typography.titleLarge, color = OwnTVTheme.colors.onSurface)
-                    val metaBits = listOfNotNull(year?.let { localizedInteger(it, grouping = false) }, rating?.let { stringResource(R.string.content_rating, it) })
-                    if (metaBits.isNotEmpty()) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(metaBits.joinToString(stringResource(R.string.content_metadata_separator)), style = MaterialTheme.typography.bodyMedium, color = OwnTVTheme.colors.onSurfaceVariant)
-                    }
-                    if (genres.isNotEmpty()) {
-                        Spacer(Modifier.height(6.dp))
-                        Text(genres.joinToString(stringResource(R.string.content_genres_separator)), style = MaterialTheme.typography.labelMedium, color = OwnTVTheme.colors.primary)
-                    }
-                    if (!plot.isNullOrBlank()) {
-                        Spacer(Modifier.height(12.dp))
-                        Text(plot, style = MaterialTheme.typography.bodyMedium, color = OwnTVTheme.colors.onSurfaceVariant, maxLines = 8, overflow = TextOverflow.Ellipsis)
-                    }
-                    if (cast.isNotEmpty()) {
-                        Spacer(Modifier.height(12.dp))
-                        Text(stringResource(R.string.content_media_cast), style = MaterialTheme.typography.labelMedium, color = OwnTVTheme.colors.onSurface)
-                        Spacer(Modifier.height(2.dp))
-                        Text(cast.take(6).joinToString(", "), style = MaterialTheme.typography.bodySmall, color = OwnTVTheme.colors.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.content_press_ok_episodes), style = MaterialTheme.typography.bodyMedium, color = OwnTVTheme.colors.primary)
-                }
-                }
-            }
-        }
-    }
     }
 
     // Long-press a series → context menu.

@@ -478,7 +478,7 @@ fun MoviesScreen(
                                     firstItemFocus = firstItemFocus,
                                 ),
                                 onFocus = { vm.onMovieFocused(movie) },
-                                onClick = { startMovie(movie) },
+                                onClick = { detailsMovie = movie },
                                 onLongClick = { contextMovie = movie; contextMovieId = movie.id; contextMovieIndex = index },
                             )
                         }
@@ -516,7 +516,7 @@ fun MoviesScreen(
                                     firstItemFocus = firstItemFocus,
                                 ),
                                 onFocus = { vm.onMovieFocused(movie) },
-                                onClick = { startMovie(movie) },
+                                onClick = { detailsMovie = movie },
                                 onLongClick = { contextMovie = movie; contextMovieId = movie.id; contextMovieIndex = index },
                             )
                         }
@@ -672,21 +672,29 @@ fun MoviesScreen(
         }
     }
 
-    // When the TMDB Details window closes, return focus to the movie it was opened from (the window
-    // trapped focus, so without this it would fall to the sidebar).
+    // When the Detail window closes, return focus to the movie it was opened from (the window
+    // trapped focus, so without this it would fall to the sidebar). The long-press "TMDB Details"
+    // path sets contextMovieId; the primary poster-tap path doesn't (no context menu involved), but
+    // the tapped tile was necessarily focused (and so selectedMovie) right before the tap, so
+    // selFocus — already bound to selectedMovie's tile via gridFocusTarget — covers that path.
     LaunchedEffect(detailsMovie) {
-        if (detailsMovie == null && contextMovieId != null) {
+        if (detailsMovie == null) {
             withFrameNanos { }
-            runCatching { contextFocus.requestFocus() }
+            if (contextMovieId != null) runCatching { contextFocus.requestFocus() }
+            else runCatching { selFocus.requestFocus() }
         }
     }
 
-    // Windowed TMDB details popup (§11.1) — read-only, Back exits.
+    // Detail page (mockup's primary poster-tap destination) doubles as the windowed TMDB-details
+    // popup opened from the long-press menu — both set detailsMovie, this is the one shared window.
     detailsMovie?.let { m ->
         val cache = selectedMovieMeta?.takeIf { it.movieId == m.id }?.cache
         MediaDetailsScreen(
             details = buildMovieDetails(m, cache, metadataMode.tmdbWins),
             onExit = { detailsMovie = null },
+            onPlay = { detailsMovie = null; startMovie(m) },
+            isFavorite = favoriteIds.contains(m.id),
+            onToggleFavorite = { vm.toggleFavorite(m) },
         )
     }
 

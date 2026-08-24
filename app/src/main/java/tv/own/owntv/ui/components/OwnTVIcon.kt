@@ -12,6 +12,24 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.vector.PathParser
+
+// Nav icons ported directly from nomotv-preview.html's inline SVG `d` path data (same 0-24
+// viewBox as this file's own 24-unit grid, so no coordinate remapping is needed — just draw
+// scaled by `s` like every other icon here). Parsed once via `by lazy`, not per-frame, since
+// PathParser does real string parsing (unlike the plain lineTo/cubicTo calls elsewhere below).
+private val HomeIconPath: Path by lazy {
+    PathParser().parsePathString("M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3l9-8z").toPath()
+}
+private val LiveBarPath: Path by lazy {
+    PathParser().parsePathString("M12 3a1 1 0 011 1v16a1 1 0 01-2 0V4a1 1 0 011-1z").toPath()
+}
+private val LiveArcsPath: Path by lazy {
+    PathParser().parsePathString(
+        "M6 8a8 8 0 000 8M18 8a8 8 0 010 8M3 5a12 12 0 000 14M21 5a12 12 0 010 14",
+    ).toPath()
+}
 
 /**
  * Brand icon set drawn directly with Canvas so we don't depend on which glyphs ship in
@@ -42,21 +60,24 @@ fun OwnTVIcon(
 
         when (icon) {
             OwnTVIcon.LIVE_TV -> {
-                drawRoundRectStroke(p(3f, 8f), p(21f, 21f), 2.5f * s, tint, stroke)
-                drawLineStroke(p(8f, 8f), p(12f, 3f), tint, stroke)
-                drawLineStroke(p(16f, 8f), p(12f, 3f), tint, stroke)
+                // Broadcast/signal mark (matches the mockup's Live nav icon) — a rounded vertical
+                // bar with two pairs of concentric arcs, rather than a literal TV-set silhouette.
+                scale(s, s, pivot = Offset.Zero) {
+                    drawPath(LiveBarPath, tint, style = Fill)
+                    drawPath(LiveArcsPath, tint, style = Stroke(width = 1.6f, cap = StrokeCap.Round))
+                }
             }
             OwnTVIcon.MOVIES -> {
-                drawRoundRectStroke(p(3f, 9f), p(21f, 20f), 2f * s, tint, stroke)
-                drawLineStroke(p(3f, 9f), p(21f, 6.5f), tint, stroke)
-                drawLineStroke(p(7.5f, 9f), p(9f, 6.2f), tint, stroke)
-                drawLineStroke(p(12f, 9f), p(13.5f, 5.8f), tint, stroke)
-                drawLineStroke(p(16.5f, 9f), p(18f, 5.5f), tint, stroke)
+                drawRoundRectStroke(p(4f, 5f), p(20f, 19f), 2f * s, tint, stroke)
+                drawLineStroke(p(4f, 9.5f), p(20f, 9.5f), tint, stroke)
+                drawLineStroke(p(4f, 14.5f), p(20f, 14.5f), tint, stroke)
+                drawLineStroke(p(9f, 5f), p(9f, 19f), tint, stroke)
+                drawLineStroke(p(15f, 5f), p(15f, 19f), tint, stroke)
             }
             OwnTVIcon.SERIES -> {
-                drawRoundRectStroke(p(6f, 4f), p(21f, 14f), 2f * s, tint, stroke)
-                drawLineStroke(p(3f, 8f), p(3f, 20f), tint, stroke)
-                drawLineStroke(p(3f, 20f), p(18f, 20f), tint, stroke)
+                // TV-on-a-stand mark (matches the mockup's TV Shows nav icon).
+                drawRoundRectStroke(p(4f, 5f), p(20f, 16f), 2f * s, tint, stroke)
+                drawLineStroke(p(9f, 20f), p(15f, 20f), tint, stroke)
             }
             OwnTVIcon.DOWNLOADS -> {
                 drawLineStroke(p(12f, 3f), p(12f, 15f), tint, stroke)
@@ -84,17 +105,11 @@ fun OwnTVIcon(
                 drawLineStroke(p(15.5f, 15.5f), p(20f, 20f), tint, stroke)
             }
             OwnTVIcon.HOME -> {
-                val roof = Path().apply {
-                    moveTo(p(12f, 3f).x, p(12f, 3f).y)
-                    lineTo(p(3f, 12f).x, p(3f, 12f).y)
-                    lineTo(p(21f, 12f).x, p(21f, 12f).y)
-                    close()
+                // Matches the mockup's Home nav icon exactly (its icon-fill and icon-stroke share
+                // one path) — filled, not outlined.
+                scale(s, s, pivot = Offset.Zero) {
+                    drawPath(HomeIconPath, tint, style = Fill)
                 }
-                drawPath(roof, tint, style = stroke)
-                drawRoundRectStroke(p(5f, 12f), p(19f, 21f), 2f * s, tint, stroke)
-                drawLineStroke(p(10f, 21f), p(10f, 15f), tint, stroke)
-                drawLineStroke(p(14f, 21f), p(14f, 15f), tint, stroke)
-                drawLineStroke(p(10f, 15f), p(14f, 15f), tint, stroke)
             }
             OwnTVIcon.STAR -> {
                 val star = starPath(center = p(12f, 12f), outer = 9f * s, inner = 3.7f * s)

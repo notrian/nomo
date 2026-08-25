@@ -67,9 +67,11 @@ import tv.own.owntv.features.shell.components.PlaylistPickerDialog
 import tv.own.owntv.features.shell.components.SettingsScreen
 import tv.own.owntv.features.shell.components.Sidebar
 import tv.own.owntv.features.shell.components.SolidAmbientBackdrop
+import tv.own.owntv.features.shell.components.TopBar
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import androidx.compose.ui.res.stringResource
+import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.theme.Dimens
 import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.LocalContentScrolled
@@ -130,6 +132,9 @@ fun OwnTVShell(
     var showExit by remember { mutableStateOf(false) }
     var showAvatarPicker by remember { mutableStateOf(false) }
     var showPlaylistPicker by remember { mutableStateOf(false) }
+    // The util-strip's source-status chip deep-links into Settings -> Manage Sources when there's
+    // nothing to quick-switch between (0-1 playlists) — same one-shot pattern as openEpgAdd.
+    var openSourcesTab by remember { mutableStateOf(false) }
     var playerMode by remember { mutableStateOf(PlayerMode.NONE) }
     // Deep-link: the Guide's "Add EPG" button switches to Settings and opens EPG Sources → add.
     var openEpgAdd by remember { mutableStateOf(false) }
@@ -485,11 +490,89 @@ fun OwnTVShell(
                     // the image shows through the gaps between the content panels.
                     .background(shellBase),
             ) {
-                // TopBar removed — its functionality (section switching, search entry) lives in the
-                // Sidebar now. NOTE: the playlist quick-switch chip, weather chip, "Continue" resume
-                // chip, and the Audio Mode now-playing bar used to live here and currently have no
-                // replacement home — see the follow-up note in chat.
-                Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = 0.dp, end = 6.dp, bottom = 6.dp, top = 6.dp)) {
+                // Util-strip (mockup: .util-strip) — section switching and search live in the Sidebar
+                // now, so this is just the right-aligned status chips: Audio Mode now-playing bar,
+                // "Continue" resume, weather, and the persistent source-status chip.
+                TopBar(
+                    sourceStatusLabel = when {
+                        playlists.size <= 1 -> sourceSummary ?: noSourceLabel
+                        activePlaylistId <= 0L -> stringResource(R.string.content_all_playlists)
+                        else -> playlists.firstOrNull { it.id == activePlaylistId }?.name ?: (sourceSummary ?: noSourceLabel)
+                    },
+                    sourceStatusActive = sourceSummary != null,
+                    onSourceStatusClick = {
+                        if (playlists.size > 1) {
+                            showPlaylistPicker = true
+                        } else {
+                            openSourcesTab = true
+                            onSelectSection(MainSection.SETTINGS)
+                        }
+                    },
+                    sourceStatusDownFocusRequester = homeFirstRowFocus.takeIf { selectedSection == MainSection.HOME },
+                    weatherInfo = weatherInfo,
+                    weatherFahrenheit = weatherFahrenheit,
+                    // The chips only need to be reachable while the nav panel holds focus — otherwise a
+                    // held Up from deep inside a grid/list could outrun composition and land here.
+                    chipsFocusable = focusedLayer == ShellLayer.SIDEBAR,
+                    // Batch 7 — shared "Continue" chip: one-press resume of the most-recent item.
+                    continueLabel = continueTarget?.let { target ->
+                        val action = when (target.action) {
+                            tv.own.owntv.features.home.ContinueAction.RESUME -> stringResource(R.string.content_action_resume)
+                            tv.own.owntv.features.home.ContinueAction.PLAY -> stringResource(R.string.content_action_play)
+                            tv.own.owntv.features.home.ContinueAction.NEXT_UP -> stringResource(R.string.content_action_next_up)
+                            tv.own.owntv.features.home.ContinueAction.LAST_CHANNEL -> stringResource(R.string.content_action_last_channel)
+                        }
+                        stringResource(R.string.content_continue_label, action, target.name)
+                    },
+                    continueIcon = when (continueTarget?.kind) {
+                        tv.own.owntv.features.home.ContinueKind.LIVE -> OwnTVIcon.LIVE_TV
+                        tv.own.owntv.features.home.ContinueKind.MOVIE -> OwnTVIcon.MOVIES
+                        tv.own.owntv.features.home.ContinueKind.EPISODE -> OwnTVIcon.SERIES
+                        null -> OwnTVIcon.PLAY
+                    },
+                    onContinueClick = {
+                        continueTarget?.let { t ->
+                            scope.launch {
+                                when (t.kind) {
+                                    tv.own.owntv.features.home.ContinueKind.LIVE ->
+                                        if (liveVm.ensurePlayingByIdAsync(t.channelId)) openFullscreen(MainSection.LIVE_TV)
+                                    tv.own.owntv.features.home.ContinueKind.MOVIE ->
+                                        if (movieVm.playByIdAsync(t.movieId, t.positionMs) && !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES)
+                                    tv.own.owntv.features.home.ContinueKind.EPISODE ->
+                                        if (seriesVm.playFromHomeAsync(t.seriesId, t.episodeId, t.positionMs) && !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES)
+                                }
+                            }
+                        }
+                    },
+                    // Audio Mode: the now-playing bar. Present only while PlayerMode.AUDIO; always
+                    // focusable (not gated on the nav panel like the other chips), because its own
+                    // D-pad trap keeps focus inside once entered and Back is the only way out.
+                    audioBar = if (playerMode == PlayerMode.AUDIO) {
+                        {
+                            val isLiveStream = liveOnExo || player.isLiveContent
+                            val zapFn: ((Int) -> Unit)? = when {
+                                !isLiveStream -> null
+                                zapSource == MainSection.LIVE_TV && liveCanZap -> liveVm::zap
+                                else -> null
+                            }
+                            val audioEngine = if (liveOnExo) liveVm.previewEngine else mpvEngine
+                            val vodNav by audioEngine.nav.collectAsStateWithLifecycle()
+                            tv.own.owntv.player.AudioNowPlayingBar(
+                                player = audioEngine,
+                                isLive = isLiveStream,
+                                canPrev = if (isLiveStream) zapFn != null else vodNav.hasPrev,
+                                canNext = if (isLiveStream) zapFn != null else vodNav.hasNext,
+                                onPrev = { if (isLiveStream) zapFn?.invoke(-1) else mpvEngine.previous() },
+                                onNext = { if (isLiveStream) zapFn?.invoke(1) else mpvEngine.next() },
+                                onExpand = expandPlayer,
+                                onClose = exitPlayer,
+                                focusable = true,
+                            )
+                        }
+                    } else null,
+                    modifier = Modifier.padding(end = 6.dp),
+                )
+                Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(start = 0.dp, end = 6.dp, bottom = 6.dp)) {
                     when {
                         selectedSection == MainSection.SETTINGS -> SettingsScreen(
                             themeMode = themeMode,
@@ -500,6 +583,8 @@ fun OwnTVShell(
                             onOpenPlaylist = { /* Phase 6: open setup/playlist */ },
                             openEpgAdd = openEpgAdd,
                             onEpgAddConsumed = { openEpgAdd = false },
+                            openSourcesTab = openSourcesTab,
+                            onSourcesTabConsumed = { openSourcesTab = false },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }

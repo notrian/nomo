@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,20 +61,15 @@ import tv.own.owntv.player.MpvVideoSurface
 import tv.own.owntv.player.OwnTVPlayer
 import tv.own.owntv.player.PlayerHud
 import tv.own.owntv.features.shell.components.AvatarPickerDialog
-import tv.own.owntv.features.shell.components.CategoryRail
-import tv.own.owntv.features.shell.components.ContentPane
 import tv.own.owntv.features.shell.components.ExitDialog
 import tv.own.owntv.features.shell.components.IncompleteRestoreDialog
 import tv.own.owntv.features.shell.components.PlaylistPickerDialog
-import tv.own.owntv.features.shell.components.PreviewPane
-import tv.own.owntv.features.shell.components.RailCategory
 import tv.own.owntv.features.shell.components.SettingsScreen
 import tv.own.owntv.features.shell.components.Sidebar
 import tv.own.owntv.features.shell.components.SolidAmbientBackdrop
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import androidx.compose.ui.res.stringResource
-import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.theme.Dimens
 import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.LocalContentScrolled
@@ -125,9 +119,6 @@ fun OwnTVShell(
     val colors = OwnTVTheme.colors
     val noSourceLabel = stringResource(R.string.shell_no_source)
     val subtitleLoadFailed = stringResource(R.string.content_subtitle_load_failed)
-    val railSelection = remember { mutableStateMapOf<MainSection, Int>() }
-    val selectedRail = railSelection[selectedSection] ?: 0
-    val categories = railCategoriesFor(selectedSection)
     // Each destination reports whether content has passed the 8 dp threshold. Keying this state to
     // the section prevents a scrolled screen from leaving the next destination's chrome condensed.
     var contentScrolled by remember(selectedSection) { mutableStateOf(false) }
@@ -661,37 +652,6 @@ fun OwnTVShell(
                                 .focusGroup(),
                         )
 
-                        else -> Row(modifier = Modifier.fillMaxSize()) {
-                            CategoryRail(
-                                categories = categories,
-                                selectedIndex = selectedRail,
-                                onSelect = { railSelection[selectedSection] = it },
-                                onFocused = { focusedLayer = ShellLayer.RAIL },
-                            )
-
-                            ContentPane(
-                                sectionTitle = stringResource(selectedSection.labelRes),
-                                categoryName = categories.getOrNull(selectedRail)?.let { category -> category.labelRes?.let { stringResource(it) } ?: category.fullName }
-                                    ?: stringResource(R.string.content_category_all_channels),
-                                countLabel = placeholderCount(selectedSection),
-                                emptyIcon = selectedSection.emptyIcon,
-                                emptyMessage = stringResource(R.string.content_empty_section, stringResource(selectedSection.labelRes)),
-                                onAddSource = { onSelectSection(MainSection.SETTINGS) },
-                                modifier = Modifier
-                                    .weight(1.4f)
-                                    .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
-                                    .focusGroup(),
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxSize()
-                                    .padding(Dimens.GapLarge),
-                            ) {
-                                PreviewPane(hint = stringResource(R.string.content_preview_select_channel))
-                            }
-                        }
                     }
                 }
             }
@@ -1114,64 +1074,3 @@ private fun OfflineBanner() {
     }
 }
 
-private val MainSection.emptyIcon: OwnTVIcon
-    get() = when (this) {
-        MainSection.SEARCH -> OwnTVIcon.SEARCH
-        MainSection.HOME -> OwnTVIcon.HOME
-        MainSection.LIVE_TV -> OwnTVIcon.LIVE_TV
-        MainSection.MOVIES -> OwnTVIcon.MOVIES
-        MainSection.SERIES -> OwnTVIcon.SERIES
-        MainSection.FAVORITES -> OwnTVIcon.FAVORITE
-        MainSection.DOWNLOADS -> OwnTVIcon.DOWNLOADS
-        MainSection.EPG -> OwnTVIcon.EPG
-        MainSection.SETTINGS -> OwnTVIcon.GEAR
-    }
-
-private fun railCategoriesFor(section: MainSection): List<RailCategory> = when (section) {
-    MainSection.SEARCH -> emptyList()
-    MainSection.HOME -> emptyList()
-    MainSection.FAVORITES -> emptyList()
-    MainSection.EPG -> emptyList()
-    MainSection.LIVE_TV -> listOf(
-        RailCategory("Favorites", OwnTVIcon.FAVORITE, tv.own.owntv.R.string.content_category_favorites),
-        RailCategory("History", OwnTVIcon.HISTORY, tv.own.owntv.R.string.content_category_history),
-        RailCategory("All Channels", labelRes = tv.own.owntv.R.string.content_category_all_channels, showGenreDot = false),
-        RailCategory("United Kingdom", labelRes = tv.own.owntv.R.string.content_category_united_kingdom),
-        RailCategory("United States", labelRes = tv.own.owntv.R.string.content_category_united_states),
-        RailCategory("Germany", labelRes = tv.own.owntv.R.string.content_category_germany),
-        RailCategory("Sports", labelRes = tv.own.owntv.R.string.content_category_sports),
-    )
-    MainSection.MOVIES -> listOf(
-        RailCategory("Favorites", OwnTVIcon.FAVORITE, tv.own.owntv.R.string.content_category_favorites),
-        RailCategory("History", OwnTVIcon.HISTORY, tv.own.owntv.R.string.content_category_history),
-        RailCategory("All Movies", labelRes = tv.own.owntv.R.string.content_category_all_movies, showGenreDot = false),
-        RailCategory("Action", labelRes = tv.own.owntv.R.string.content_category_action),
-        RailCategory("Drama", labelRes = tv.own.owntv.R.string.content_category_drama),
-        RailCategory("Comedy", labelRes = tv.own.owntv.R.string.content_category_comedy),
-        RailCategory("Horror", labelRes = tv.own.owntv.R.string.content_category_horror),
-    )
-    MainSection.SERIES -> listOf(
-        RailCategory("Favorites", OwnTVIcon.FAVORITE, tv.own.owntv.R.string.content_category_favorites),
-        RailCategory("History", OwnTVIcon.HISTORY, tv.own.owntv.R.string.content_category_history),
-        RailCategory("All Series", labelRes = tv.own.owntv.R.string.content_category_all_series, showGenreDot = false),
-        RailCategory("Drama", labelRes = tv.own.owntv.R.string.content_category_drama),
-        RailCategory("Action", labelRes = tv.own.owntv.R.string.content_category_action),
-        RailCategory("Animation", labelRes = tv.own.owntv.R.string.content_category_animation),
-        RailCategory("Documentary", labelRes = tv.own.owntv.R.string.content_category_documentary),
-    )
-    MainSection.DOWNLOADS -> listOf(
-        RailCategory("All Downloads", labelRes = tv.own.owntv.R.string.content_category_all_downloads, showGenreDot = false),
-        RailCategory("Movies", labelRes = tv.own.owntv.R.string.content_category_movies),
-        RailCategory("Series", labelRes = tv.own.owntv.R.string.content_category_series),
-    )
-    MainSection.SETTINGS -> emptyList()
-}
-
-@Composable
-private fun placeholderCount(section: MainSection): String = when (section) {
-    MainSection.SEARCH, MainSection.HOME, MainSection.FAVORITES, MainSection.EPG, MainSection.SETTINGS -> ""
-    MainSection.LIVE_TV -> stringResource(R.string.content_zero_channels)
-    MainSection.MOVIES -> stringResource(R.string.content_zero_movies)
-    MainSection.SERIES -> stringResource(R.string.content_zero_series)
-    MainSection.DOWNLOADS -> stringResource(R.string.content_zero_downloads)
-}

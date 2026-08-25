@@ -1,6 +1,7 @@
 package tv.own.owntv.features.shell.components
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.Immutable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,7 @@ import androidx.tv.material3.Text
 import tv.own.owntv.R
 import tv.own.owntv.ui.components.FilterChip
 import tv.own.owntv.ui.components.FocusableSurface
+import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.components.dialogPanel
 import tv.own.owntv.ui.components.modalScrim
 import tv.own.owntv.ui.components.trapAllFocusExit
@@ -41,8 +43,23 @@ import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.OwnTVTheme
 
 /**
- * Horizontal category filter row — the mockup's `.filter-rail` of `.chip-btn`s. Replaces the
- * vertical [CategoryRail] for Movies/Series/Live (see the redesign plan's Phase 3 restructure
+ * A category as shown in a category chip row: just its full name, optionally prefixed with an
+ * [icon] (the Favorites / History special rows).
+ */
+@Immutable
+data class RailCategory(
+    /** Stable provider/category key. Synthetic rows keep their English key here for filtering and state. */
+    val fullName: String,
+    val icon: OwnTVIcon? = null,
+    @param:androidx.annotation.StringRes val labelRes: Int? = null,
+    // Whether to show the genre hint dot. False for synthetic aggregates ("All Channels/Movies/Series")
+    // that combine every provider category — those aren't a real provider genre, so no dot.
+    val showGenreDot: Boolean = true,
+)
+
+/**
+ * Horizontal category filter row — the mockup's `.filter-rail` of `.chip-btn`s. Replaces the old
+ * vertical category rail for Movies/Series/Live (see the redesign plan's Phase 3 restructure
  * decision). Real playlists can have 15-30 categories (folders, custom groups, Favorites,
  * History) — far more than the mockup's ~5 genre chips — so only the first [maxVisible] show
  * directly; a trailing "More" chip opens [CategoryPickerDialog] with the full list. The current

@@ -225,9 +225,9 @@ fun LiveScreen(
     var contextMenuOpen by remember { mutableStateOf(false) }
     // Id of the channel the context menu was opened on, plus a dedicated requester bound to that row.
     // The previous restore was racy (delay(60) + selFocus bound to the *previewed* channel): when the
-    // menu scrim disposed the focused menu button, Compose auto-restored focus and the CategoryRail's
-    // entry-redirect pinned it to the rail before selFocus.requestFocus() ran. Tracking the long-press
-    // target by id and binding a dedicated requester makes the restore deterministic.
+    // menu scrim disposed the focused menu button, Compose auto-restored focus before selFocus.requestFocus()
+    // ran, landing it somewhere unpredictable. Tracking the long-press target by id and binding a
+    // dedicated requester makes the restore deterministic.
     var contextChannelId by remember { mutableStateOf<Long?>(null) }
     val contextFocus = remember { FocusRequester() }
     var enteringMoveMode by remember { mutableStateOf(false) }

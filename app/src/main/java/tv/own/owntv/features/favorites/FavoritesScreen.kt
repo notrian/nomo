@@ -3,10 +3,10 @@ package tv.own.owntv.features.favorites
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -86,7 +86,7 @@ fun FavoritesScreen(
                     OwnTVIcon(
                         OwnTVIcon.FAVORITE,
                         tint = colors.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 12.dp).aspectRatio(1f).fillMaxWidth(0.12f),
+                        modifier = Modifier.padding(bottom = 12.dp).size(56.dp),
                     )
                     Text(
                         stringResource(R.string.content_favorites_empty_title),

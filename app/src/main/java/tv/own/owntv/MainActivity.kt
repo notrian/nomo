@@ -219,7 +219,6 @@ class MainActivity : ComponentActivity() {
             val customAccent by viewModel.customAccent.collectAsStateWithLifecycle()
             val focusHighlight by viewModel.focusHighlight.collectAsStateWithLifecycle()
             val focusHighlightWidth by viewModel.focusHighlightWidth.collectAsStateWithLifecycle()
-            val sidebarPinned by viewModel.sidebarPinned.collectAsStateWithLifecycle()
             val uiZoomPercent by viewModel.uiZoomPercent.collectAsStateWithLifecycle()
             val fontCustomization by viewModel.fontCustomization.collectAsStateWithLifecycle()
             val animationLevel by viewModel.animationLevel.collectAsStateWithLifecycle()
@@ -228,10 +227,7 @@ class MainActivity : ComponentActivity() {
             val avatarId by viewModel.avatarId.collectAsStateWithLifecycle()
             val profileName by viewModel.profileName.collectAsStateWithLifecycle()
             val sourceSummary by viewModel.sourceSummary.collectAsStateWithLifecycle()
-            val playlists by viewModel.playlists.collectAsStateWithLifecycle()
             val activePlaylistId by viewModel.activePlaylistId.collectAsStateWithLifecycle()
-            val weather by viewModel.weather.collectAsStateWithLifecycle()
-            val weatherFahrenheit by viewModel.weatherFahrenheit.collectAsStateWithLifecycle()
             val selectedSection by viewModel.selectedSection.collectAsStateWithLifecycle()
             val visibleSections by viewModel.visibleSections.collectAsStateWithLifecycle()
             val activeProfileId by viewModel.activeProfileId.collectAsStateWithLifecycle()
@@ -426,15 +422,9 @@ class MainActivity : ComponentActivity() {
                                 onSetFontCustomization = viewModel::setFontCustomization,
                                 avatarId = avatarId,
                                 onSetAvatar = viewModel::setAvatar,
-                                sidebarPinned = sidebarPinned,
-                                onSetSidebarPinned = viewModel::setSidebarPinned,
                                 profileName = profileName,
                                 sourceSummary = sourceSummary,
-                                playlists = playlists,
                                 activePlaylistId = activePlaylistId,
-                                onSelectPlaylist = viewModel::setActivePlaylist,
-                                weatherInfo = weather,
-                                weatherFahrenheit = weatherFahrenheit,
                                 activeProfileId = activeProfileId,
                                 pendingDeepLink = pendingDeepLink,
                                 onDeepLinkConsumed = { pendingDeepLink = null },

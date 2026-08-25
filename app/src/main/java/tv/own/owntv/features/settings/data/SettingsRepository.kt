@@ -307,9 +307,6 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         // user has hidden (STATIC mode only — DYNAMIC ignores it).
         val NAV_MENU_MODE = stringPreferencesKey("nav_menu_mode")
         val NAV_MENU_HIDDEN = stringSetPreferencesKey("nav_menu_hidden")
-        /** Keep the sidebar expanded (labels visible) at all times instead of only while it holds
-         *  D-pad focus. Matches the mockup's `.rail.pinned`. */
-        val SIDEBAR_PINNED = booleanPreferencesKey("sidebar_pinned")
         // CH+- key paging for browse panels (Live/Movies/Series: category rail + item list/grid).
         // Master toggle + a per-direction skip count (CH+ toward first, CH− toward last). Counts are
         // clamped to [1, CH_NAV_HARD_MAX] on write; the UI warns above CH_NAV_WARN_THRESHOLD.
@@ -755,13 +752,6 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         context.dataStore.edit { prefs ->
             if (hidden.isEmpty()) prefs.remove(Keys.NAV_MENU_HIDDEN) else prefs[Keys.NAV_MENU_HIDDEN] = hidden
         }
-    }
-
-    /** Whether the sidebar stays expanded at all times (see [Keys.SIDEBAR_PINNED]). */
-    val sidebarPinned: Flow<Boolean> = prefsFlow { it[Keys.SIDEBAR_PINNED] ?: false }
-
-    suspend fun setSidebarPinned(pinned: Boolean) {
-        context.dataStore.edit { it[Keys.SIDEBAR_PINNED] = pinned }
     }
 
     // --- List sorting (per browse section) ---

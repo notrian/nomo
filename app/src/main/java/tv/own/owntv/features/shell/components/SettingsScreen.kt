@@ -172,10 +172,6 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     openEpgAdd: Boolean = false,
     onEpgAddConsumed: () -> Unit = {},
-    // The util-strip's source-status chip (mockup: sourceStatusChip) deep-links here when there's
-    // nothing to quick-switch between (0-1 playlists) — same pattern as openEpgAdd/onEpgAddConsumed.
-    openSourcesTab: Boolean = false,
-    onSourcesTabConsumed: () -> Unit = {},
 ) {
     // A cross-script language change recreates the Activity so Android can apply the new script's
     // shaping and font fallback. Keep the open settings sub-screen across that configuration change
@@ -361,9 +357,6 @@ fun SettingsScreen(
     }
     LaunchedEffect(openEpgAdd) {
         if (openEpgAdd) { consumeEpgAdd = true; open(SettingsTab.EPG); onEpgAddConsumed() }
-    }
-    LaunchedEffect(openSourcesTab) {
-        if (openSourcesTab) { open(SettingsTab.SOURCES); onSourcesTabConsumed() }
     }
 
     when (tab) {

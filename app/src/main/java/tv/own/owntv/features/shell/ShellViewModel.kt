@@ -23,8 +23,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import tv.own.owntv.core.epg.EpgSourceStore
 import tv.own.owntv.core.network.ConnectivityObserver
-import tv.own.owntv.core.weather.WeatherInfo
-import tv.own.owntv.core.weather.WeatherRepository
 import tv.own.owntv.core.database.dao.resolveExistingProfileId
 import tv.own.owntv.core.repository.SourceRepository
 import tv.own.owntv.core.launcher.LauncherIntegrationRepository
@@ -97,7 +95,6 @@ class ShellViewModel(
     private val epgSourceStore: EpgSourceStore,
     private val epgDao: EpgDao,
     private val importFinalizer: ImportFinalizer,
-    private val weatherRepository: WeatherRepository,
     private val channelDao: tv.own.owntv.core.database.dao.ChannelDao,
     private val movieDao: tv.own.owntv.core.database.dao.MovieDao,
     private val seriesDao: tv.own.owntv.core.database.dao.SeriesDao,
@@ -301,14 +298,6 @@ class ShellViewModel(
     val focusHighlightWidth: StateFlow<Int> = settings.focusHighlightWidth
         .stateIn(viewModelScope, SharingStarted.Eagerly, 2)
 
-    /** Keep the sidebar expanded at all times, not just while it holds focus. */
-    val sidebarPinned: StateFlow<Boolean> = settings.sidebarPinned
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    fun setSidebarPinned(pinned: Boolean) {
-        viewModelScope.launch { settings.setSidebarPinned(pinned) }
-    }
-
     /** Glass effect background image path (app-private); blank = no background (panels solid). */
     val bgImagePath: StateFlow<String> = settings.bgImagePath
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
@@ -338,36 +327,9 @@ class ShellViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    /** The active profile's playlists, for the top-bar quick switcher (empty when the profile has none). */
-    val playlists: StateFlow<List<tv.own.owntv.core.database.entity.SourceEntity>> = settings.activeProfileId
-        .flatMapLatest { pid -> if (pid < 0) flowOf(emptyList()) else sourceRepository.observeSources(pid) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
     /** The chosen active-playlist filter: -1 = All playlists (merged view), else a single playlist id. */
     val activePlaylistId: StateFlow<Long> = settings.defaultSourceId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), -1L)
-
-    /** Switch the active-playlist filter from the top-bar picker. Persists (survives restart). */
-    fun setActivePlaylist(id: Long) {
-        viewModelScope.launch { settings.setDefaultSource(id) }
-    }
-
-    /**
-     * Phase 7 — weather chip. Refreshes when connectivity returns, cached 30 min by repository.
-     * Gated by the "Show weather" setting (OFF hides the chip) and honouring a manual location
-     * override so users on a VPN get their real city instead of the VPN server's.
-     */
-    val weather: StateFlow<WeatherInfo?> =
-        combine(connectivity.isOnline, settings.weatherEnabled, settings.weatherLocation) { online, enabled, loc ->
-            Triple(online, enabled, loc)
-        }.flatMapLatest { (online, enabled, loc) ->
-            if (!online || !enabled) flowOf(null as WeatherInfo?)
-            else flow { emit(weatherRepository.get(loc)) }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null as WeatherInfo?)
-
-    /** °F display for the weather chip (default °C). */
-    val weatherFahrenheit: StateFlow<Boolean> = settings.weatherFahrenheit
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     /** null = still loading; < 0 = first run (show setup wizard); >= 0 = active profile (show shell). */
     val activeProfileId: StateFlow<Long?> = settings.activeProfileId

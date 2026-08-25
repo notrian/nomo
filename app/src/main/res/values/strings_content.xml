@@ -364,22 +364,10 @@
     <string name="content_subtitle_load_failed">Couldn\'t load the subtitle file.</string>
     <!-- Translators: Section header or tab label for the watch history. -->
     <string name="content_history">History</string>
-    <!-- Translators: Label for the playlist filter showing all playlists. -->
-    <string name="content_all_playlists">All playlists</string>
     <!-- Translators: Search hint text in the category browser. -->
     <string name="content_search_categories">Search categories\u2026</string>
     <!-- Translators: Empty-state message when the category search returns no results. -->
     <string name="content_no_categories_match">No categories match</string>
-    <!-- Translators: Imperative action in the clickable top-bar Continue chip. -->
-    <string name="content_action_resume">Resume</string>
-    <!-- Translators: Action button to play content from the beginning. -->
-    <string name="content_action_play">Play</string>
-    <!-- Translators: Action label for the "Next up" item in a continue-watching row. -->
-    <string name="content_action_next_up">Next up</string>
-    <!-- Translators: Action label for the "Last channel" item in the continue-watching row. -->
-    <string name="content_action_last_channel">Last channel</string>
-    <!-- Translators: Continue-watching label combining an action and content name. "action" is the action label (e.g. Resume); "name" is the content name. The dot is a separator. -->
-    <string name="content_continue_label"><xliff:g id="action">%1$s</xliff:g> \u00b7 <xliff:g id="name">%2$s</xliff:g></string>
     <!-- Translators: Empty-state message for a section that is not yet implemented. "section" is the section name. Directs the user to add a source. -->
     <string name="content_empty_section"><xliff:g id="section">%1$s</xliff:g> arrives in a later phase. Add an M3U or Xtream source to populate this list.</string>
     <!-- Translators: Progress percentage display. The double percent (%%) is an Android XML escape for a literal %. -->

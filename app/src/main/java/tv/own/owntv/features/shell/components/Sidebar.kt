@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -68,12 +67,9 @@ fun Sidebar(
     selected: MainSection,
     onSelect: (MainSection) -> Unit,
     visibleSections: Set<MainSection>,
-    pinned: Boolean = false,
-    onTogglePin: () -> Unit = {},
     avatarId: Int,
     onPickAvatar: () -> Unit,
     profileName: String,
-    sourceSummary: String?,
     onSwitchProfile: () -> Unit,
     onSearchClick: () -> Unit,
     selectedItemFocusRequester: FocusRequester,
@@ -86,9 +82,8 @@ fun Sidebar(
     val scope = rememberCoroutineScope()
 
     // Expands to show labels the moment focus is anywhere inside the rail; collapses to icon-only
-    // the moment focus leaves it for the content pane — unless the user has pinned it open
-    // (matches the mockup's .rail.pinned / "Pin sidebar" row).
-    val expanded = hasFocus || pinned
+    // the moment focus leaves it for the content pane.
+    val expanded = hasFocus
 
     val focusSection = when {
         selected == MainSection.SEARCH -> MainSection.HOME
@@ -173,7 +168,7 @@ fun Sidebar(
                 }
             }
 
-            // Footer group order: Settings, then the read-only source status, then profile.
+            // Footer group order: Settings, then profile. Source status now lives in the top-bar chip.
             NavItem(
                 label = stringResource(MainSection.SETTINGS.labelRes),
                 section = MainSection.SETTINGS,
@@ -184,12 +179,6 @@ fun Sidebar(
                     Modifier.focusRequester(selectedItemFocusRequester)
                 } else Modifier,
             )
-            Spacer(Modifier.height(10.dp))
-
-            PinToggleRow(expanded = expanded, pinned = pinned, onClick = onTogglePin)
-            Spacer(Modifier.height(10.dp))
-
-            SourceDisplay(expanded = expanded, sourceSummary = sourceSummary)
             Spacer(Modifier.height(12.dp))
 
             ProfileRow(
@@ -247,79 +236,6 @@ private fun AppLogo(expanded: Boolean, modifier: Modifier = Modifier) {
 }
 
 /**
- * Read-only display of the active IPTV source — never editable from here; changing sources still
- * happens in Settings → Manage Sources / the playlist picker. Lives as a compact footer pill above
- * Settings/profile. Fixed single-line height at all times: it used to grow to a two-line label when
- * expanded and shrink to a bare dot when collapsed, which shifted every row above it up and down on
- * every focus change — pinning the height (and keeping it one line) fixes that for good.
- */
-@Composable
-private fun SourceDisplay(expanded: Boolean, sourceSummary: String?) {
-    val colors = OwnTVTheme.colors
-    val noSourceLabel = stringResource(R.string.shell_no_source)
-    val label = sourceSummary ?: noSourceLabel
-    val connected = sourceSummary != null
-
-    val rowHorizontalPadding by animateDpAsState(
-        targetValue = if (expanded) 10.dp else 0.dp,
-        animationSpec = tween(220),
-        label = "sourceRowPadding",
-    )
-    val dotLeadPadding by animateDpAsState(
-        targetValue = if (expanded) 0.dp else 14.dp,
-        animationSpec = tween(220),
-        label = "sourceDotPadding",
-    )
-    // Collapses down to exactly its own height (36dp) so a fixed 18dp corner radius reads as a true
-    // circle badge, matching the collapsed rail's icon-only rows — a wide rounded rectangle read as
-    // an odd leftover "pill" once everything else went icon-only. Expands back out to the rail's
-    // known content width (SidebarWidthExpanded minus the Column's 16dp side padding).
-    val pillWidth by animateDpAsState(
-        targetValue = if (expanded) Dimens.SidebarWidthExpanded - 32.dp else 36.dp,
-        animationSpec = tween(220),
-        label = "sourcePillWidth",
-    )
-
-    Row(
-        modifier = Modifier
-            .width(pillWidth)
-            .height(36.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(colors.onSurface.copy(alpha = 0.05f))
-            .padding(horizontal = rowHorizontalPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start,
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(start = dotLeadPadding)
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(if (connected) Color(0xFF6EE7A0) else colors.onSurfaceVariant),
-        )
-        androidx.compose.animation.AnimatedVisibility(
-            visible = expanded,
-            enter = androidx.compose.animation.fadeIn(tween(220)) +
-                androidx.compose.animation.expandHorizontally(tween(220), expandFrom = Alignment.Start),
-            exit = androidx.compose.animation.fadeOut(tween(180)) +
-                androidx.compose.animation.shrinkHorizontally(tween(180), shrinkTowards = Alignment.Start),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = colors.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 150.dp),
-                )
-            }
-        }
-    }
-}
-
-/**
  * Entry point into the existing Search destination — visually lives in the rail now (icon + label,
  * same ladder styling as the other nav rows), but just forwards to whatever Search already does.
  */
@@ -332,68 +248,6 @@ private fun SearchEntry(expanded: Boolean, onClick: () -> Unit) {
         expanded = expanded,
         onClick = onClick,
     )
-}
-
-/** Keeps the rail expanded at all times — matches the mockup's `.rail-pin` row. Same icon/lead-in
- *  animation language as [NavItem], but toggles a boolean instead of navigating. */
-@Composable
-private fun PinToggleRow(expanded: Boolean, pinned: Boolean, onClick: () -> Unit) {
-    val colors = OwnTVTheme.colors
-    val contentColor = if (pinned) colors.primary else colors.onSurfaceVariant
-    val rowHorizontalPadding by animateDpAsState(
-        targetValue = if (expanded) 8.dp else 0.dp,
-        animationSpec = tween(220),
-        label = "pinRowPadding",
-    )
-    val iconLeadPadding by animateDpAsState(
-        targetValue = if (expanded) 0.dp else 18.dp,
-        animationSpec = tween(220),
-        label = "pinIconPadding",
-    )
-    FocusableSurface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(6.dp),
-        focusedContainerColor = Color.Transparent,
-        unfocusedContainerColor = Color.Transparent,
-        selectedContainerColor = Color.Transparent,
-        showFocusBorder = false,
-        renderSelectionContainer = false,
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .padding(horizontal = rowHorizontalPadding),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-        ) {
-            OwnTVIcon(
-                icon = OwnTVIcon.HISTORY, // clock-face mark, matches the mockup's pin icon exactly
-                tint = contentColor,
-                modifier = Modifier.padding(start = iconLeadPadding).size(18.dp),
-            )
-            androidx.compose.animation.AnimatedVisibility(
-                visible = expanded,
-                enter = androidx.compose.animation.fadeIn(tween(220)) +
-                    androidx.compose.animation.expandHorizontally(tween(220), expandFrom = Alignment.Start),
-                exit = androidx.compose.animation.fadeOut(tween(180)) +
-                    androidx.compose.animation.shrinkHorizontally(tween(180), shrinkTowards = Alignment.Start),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Spacer(Modifier.width(14.dp))
-                    Text(
-                        stringResource(R.string.shell_pin_sidebar),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = contentColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-    }
 }
 
 /** Nav-rail icon per destination — ported/rebuilt to match the mockup, see [OwnTVIcon]. Public:

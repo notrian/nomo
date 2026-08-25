@@ -63,7 +63,6 @@ import tv.own.owntv.player.PlayerHud
 import tv.own.owntv.features.shell.components.AvatarPickerDialog
 import tv.own.owntv.features.shell.components.ExitDialog
 import tv.own.owntv.features.shell.components.IncompleteRestoreDialog
-import tv.own.owntv.features.shell.components.PlaylistPickerDialog
 import tv.own.owntv.features.shell.components.SettingsScreen
 import tv.own.owntv.features.shell.components.Sidebar
 import tv.own.owntv.features.shell.components.SolidAmbientBackdrop
@@ -101,15 +100,9 @@ fun OwnTVShell(
     onSetFontCustomization: (tv.own.owntv.ui.theme.FontCustomization) -> Unit,
     avatarId: Int,
     onSetAvatar: (Int) -> Unit,
-    sidebarPinned: Boolean = false,
-    onSetSidebarPinned: (Boolean) -> Unit = {},
     profileName: String,
     sourceSummary: String?,
-    playlists: List<tv.own.owntv.core.database.entity.SourceEntity> = emptyList(),
     activePlaylistId: Long = -1L,
-    onSelectPlaylist: (Long) -> Unit = {},
-    weatherInfo: tv.own.owntv.core.weather.WeatherInfo? = null, // Phase 7
-    weatherFahrenheit: Boolean = false,
     activeProfileId: Long?,
     pendingDeepLink: LauncherDeepLink?,
     onDeepLinkConsumed: () -> Unit,
@@ -131,10 +124,6 @@ fun OwnTVShell(
     var focusedLayer by remember { mutableStateOf(ShellLayer.SIDEBAR) }
     var showExit by remember { mutableStateOf(false) }
     var showAvatarPicker by remember { mutableStateOf(false) }
-    var showPlaylistPicker by remember { mutableStateOf(false) }
-    // The util-strip's source-status chip deep-links into Settings -> Manage Sources when there's
-    // nothing to quick-switch between (0-1 playlists) — same one-shot pattern as openEpgAdd.
-    var openSourcesTab by remember { mutableStateOf(false) }
     var playerMode by remember { mutableStateOf(PlayerMode.NONE) }
     // Deep-link: the Guide's "Add EPG" button switches to Settings and opens EPG Sources → add.
     var openEpgAdd by remember { mutableStateOf(false) }
@@ -260,8 +249,6 @@ fun OwnTVShell(
         if (historyChannels.isEmpty()) { value = emptyMap(); return@produceState }
         value = runCatching { liveVm.nowPlayingFor(historyChannels) }.getOrDefault(emptyMap())
     }
-    // Batch 7 — the single most-recent resumable item, surfaced as a shared top-bar "Continue" chip.
-    val continueTarget by homeVm.continueTarget.collectAsStateWithLifecycle()
 
     // Per-profile startup action runs once when the authenticated shell first appears. With one unlocked
     // profile that is immediately; profile/PIN gates keep the shell out of composition until authorized.
@@ -456,7 +443,6 @@ fun OwnTVShell(
         when {
             playerMode == PlayerMode.FULLSCREEN -> exitPlayer()
             showAvatarPicker -> showAvatarPicker = false
-            showPlaylistPicker -> showPlaylistPicker = false
             showExit -> showExit = false
             focusedLayer == ShellLayer.SIDEBAR -> showExit = true
             else -> runCatching { sidebarFocus.requestFocus() }
@@ -490,62 +476,12 @@ fun OwnTVShell(
                     // the image shows through the gaps between the content panels.
                     .background(shellBase),
             ) {
-                // Util-strip (mockup: .util-strip) — section switching and search live in the Sidebar
-                // now, so this is just the right-aligned status chips: Audio Mode now-playing bar,
-                // "Continue" resume, weather, and the persistent source-status chip.
+                // Util-strip — the source status chip (moved here from the sidebar) and a clock,
+                // both plain always-visible display chips, plus the Audio Mode now-playing bar.
                 TopBar(
-                    sourceStatusLabel = when {
-                        playlists.size <= 1 -> sourceSummary ?: noSourceLabel
-                        activePlaylistId <= 0L -> stringResource(R.string.content_all_playlists)
-                        else -> playlists.firstOrNull { it.id == activePlaylistId }?.name ?: (sourceSummary ?: noSourceLabel)
-                    },
+                    sourceStatusLabel = sourceSummary ?: noSourceLabel,
                     sourceStatusActive = sourceSummary != null,
-                    onSourceStatusClick = {
-                        if (playlists.size > 1) {
-                            showPlaylistPicker = true
-                        } else {
-                            openSourcesTab = true
-                            onSelectSection(MainSection.SETTINGS)
-                        }
-                    },
-                    sourceStatusDownFocusRequester = homeFirstRowFocus.takeIf { selectedSection == MainSection.HOME },
-                    weatherInfo = weatherInfo,
-                    weatherFahrenheit = weatherFahrenheit,
-                    // The chips only need to be reachable while the nav panel holds focus — otherwise a
-                    // held Up from deep inside a grid/list could outrun composition and land here.
-                    chipsFocusable = focusedLayer == ShellLayer.SIDEBAR,
-                    // Batch 7 — shared "Continue" chip: one-press resume of the most-recent item.
-                    continueLabel = continueTarget?.let { target ->
-                        val action = when (target.action) {
-                            tv.own.owntv.features.home.ContinueAction.RESUME -> stringResource(R.string.content_action_resume)
-                            tv.own.owntv.features.home.ContinueAction.PLAY -> stringResource(R.string.content_action_play)
-                            tv.own.owntv.features.home.ContinueAction.NEXT_UP -> stringResource(R.string.content_action_next_up)
-                            tv.own.owntv.features.home.ContinueAction.LAST_CHANNEL -> stringResource(R.string.content_action_last_channel)
-                        }
-                        stringResource(R.string.content_continue_label, action, target.name)
-                    },
-                    continueIcon = when (continueTarget?.kind) {
-                        tv.own.owntv.features.home.ContinueKind.LIVE -> OwnTVIcon.LIVE_TV
-                        tv.own.owntv.features.home.ContinueKind.MOVIE -> OwnTVIcon.MOVIES
-                        tv.own.owntv.features.home.ContinueKind.EPISODE -> OwnTVIcon.SERIES
-                        null -> OwnTVIcon.PLAY
-                    },
-                    onContinueClick = {
-                        continueTarget?.let { t ->
-                            scope.launch {
-                                when (t.kind) {
-                                    tv.own.owntv.features.home.ContinueKind.LIVE ->
-                                        if (liveVm.ensurePlayingByIdAsync(t.channelId)) openFullscreen(MainSection.LIVE_TV)
-                                    tv.own.owntv.features.home.ContinueKind.MOVIE ->
-                                        if (movieVm.playByIdAsync(t.movieId, t.positionMs) && !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES)
-                                    tv.own.owntv.features.home.ContinueKind.EPISODE ->
-                                        if (seriesVm.playFromHomeAsync(t.seriesId, t.episodeId, t.positionMs) && !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES)
-                                }
-                            }
-                        }
-                    },
-                    // Audio Mode: the now-playing bar. Present only while PlayerMode.AUDIO; always
-                    // focusable (not gated on the nav panel like the other chips), because its own
+                    // Audio Mode: the now-playing bar. Present only while PlayerMode.AUDIO; its own
                     // D-pad trap keeps focus inside once entered and Back is the only way out.
                     audioBar = if (playerMode == PlayerMode.AUDIO) {
                         {
@@ -583,8 +519,6 @@ fun OwnTVShell(
                             onOpenPlaylist = { /* Phase 6: open setup/playlist */ },
                             openEpgAdd = openEpgAdd,
                             onEpgAddConsumed = { openEpgAdd = false },
-                            openSourcesTab = openSourcesTab,
-                            onSourcesTabConsumed = { openSourcesTab = false },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
@@ -769,12 +703,9 @@ fun OwnTVShell(
                     onSelectSection(section)
                 },
                 visibleSections = visibleSections,
-                pinned = sidebarPinned,
-                onTogglePin = { onSetSidebarPinned(!sidebarPinned) },
                 avatarId = avatarId,
                 onPickAvatar = { showAvatarPicker = true },
                 profileName = profileName,
-                sourceSummary = sourceSummary,
                 onSwitchProfile = onSwitchProfile,
                 onSearchClick = {
                     searchVm.setQuery("")
@@ -1081,14 +1012,6 @@ fun OwnTVShell(
                 selectedId = avatarId,
                 onSelect = onSetAvatar,
                 onDismiss = { showAvatarPicker = false },
-            )
-        }
-        if (showPlaylistPicker) {
-            PlaylistPickerDialog(
-                playlists = playlists,
-                activeId = activePlaylistId,
-                onSelect = onSelectPlaylist,
-                onDismiss = { showPlaylistPicker = false },
             )
         }
 

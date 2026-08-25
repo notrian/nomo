@@ -316,21 +316,6 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         val CH_NAV_ENABLED = booleanPreferencesKey("ch_nav_enabled")
         val CH_NAV_UP_SKIP = intPreferencesKey("ch_nav_up_skip")
         val CH_NAV_DOWN_SKIP = intPreferencesKey("ch_nav_down_skip")
-        // Manual panel-width adjustment (v4.3.x): per section (Live/Movies/Series) a master toggle plus
-        // one percentage per panel (category rail · item list/grid · preview). 100 = stock width; the
-        // three are normalized across the row, so they always fill the screen. See PanelWidths.kt.
-        val PANEL_W_LIVE_ON = booleanPreferencesKey("panel_w_live_on")
-        val PANEL_W_LIVE_CAT = intPreferencesKey("panel_w_live_cat")
-        val PANEL_W_LIVE_LIST = intPreferencesKey("panel_w_live_list")
-        val PANEL_W_LIVE_PREVIEW = intPreferencesKey("panel_w_live_preview")
-        val PANEL_W_MOVIES_ON = booleanPreferencesKey("panel_w_movies_on")
-        val PANEL_W_MOVIES_CAT = intPreferencesKey("panel_w_movies_cat")
-        val PANEL_W_MOVIES_LIST = intPreferencesKey("panel_w_movies_list")
-        val PANEL_W_MOVIES_PREVIEW = intPreferencesKey("panel_w_movies_preview")
-        val PANEL_W_SERIES_ON = booleanPreferencesKey("panel_w_series_on")
-        val PANEL_W_SERIES_CAT = intPreferencesKey("panel_w_series_cat")
-        val PANEL_W_SERIES_LIST = intPreferencesKey("panel_w_series_list")
-        val PANEL_W_SERIES_PREVIEW = intPreferencesKey("panel_w_series_preview")
         // "Browsing & lists" — two independent per-section toggles (Live TV / Movies / Series).
         //
         // REMEMBER_LAST_*  = remember last ITEM. OFF (default) = switching category resets the browse list
@@ -1151,74 +1136,6 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         context.dataStore.edit { it[Keys.CH_NAV_DOWN_SKIP] = n.coerceIn(1, ChNavLimits.HARD_MAX) }
     }
 
-    // --- Manual panel widths: per browse section, a master toggle + one percentage per panel ---
-    // While the toggle is off the screens keep their stock layout code path entirely, so the feature
-    // can't affect anyone who never opens it. Percentages are clamped on both read and write.
-    private fun panelOnKey(s: PanelSection) = when (s) {
-        PanelSection.LIVE -> Keys.PANEL_W_LIVE_ON
-        PanelSection.MOVIES -> Keys.PANEL_W_MOVIES_ON
-        PanelSection.SERIES -> Keys.PANEL_W_SERIES_ON
-    }
-    private fun panelCategoryKey(s: PanelSection) = when (s) {
-        PanelSection.LIVE -> Keys.PANEL_W_LIVE_CAT
-        PanelSection.MOVIES -> Keys.PANEL_W_MOVIES_CAT
-        PanelSection.SERIES -> Keys.PANEL_W_SERIES_CAT
-    }
-    private fun panelListKey(s: PanelSection) = when (s) {
-        PanelSection.LIVE -> Keys.PANEL_W_LIVE_LIST
-        PanelSection.MOVIES -> Keys.PANEL_W_MOVIES_LIST
-        PanelSection.SERIES -> Keys.PANEL_W_SERIES_LIST
-    }
-    private fun panelPreviewKey(s: PanelSection) = when (s) {
-        PanelSection.LIVE -> Keys.PANEL_W_LIVE_PREVIEW
-        PanelSection.MOVIES -> Keys.PANEL_W_MOVIES_PREVIEW
-        PanelSection.SERIES -> Keys.PANEL_W_SERIES_PREVIEW
-    }
-
-    private fun livePreviewPanelHidden(p: Preferences): Boolean =
-        (p[Keys.PANEL_W_LIVE_ON] ?: false) &&
-            (p[Keys.PANEL_W_LIVE_CAT] ?: 0) > 0 &&
-            (p[Keys.PANEL_W_LIVE_LIST] ?: 0) > 0 &&
-            p[Keys.PANEL_W_LIVE_PREVIEW] == 0
-
-    fun panelWidthEnabled(s: PanelSection): Flow<Boolean> = prefsFlow { it[panelOnKey(s)] ?: false }
-
-    /**
-     * The section's three shares, or null when nothing has been saved yet (the dialog then seeds
-     * itself from the stock layout). Read back through [balanceToTotal] so a value written by a
-     * different build can never leave the row over- or under-filled.
-     */
-    fun panelShares(s: PanelSection): Flow<PanelShares?> = prefsFlow { p ->
-        val category = p[panelCategoryKey(s)]
-        val list = p[panelListKey(s)]
-        val preview = p[panelPreviewKey(s)]
-        if (category == null || list == null || preview == null || category <= 0 || list <= 0 || preview < 0) {
-            null
-        } else {
-            balanceToTotal(
-                PanelShares(
-                    PanelWidthLimits.snap(category),
-                    PanelWidthLimits.snap(list),
-                    PanelWidthLimits.snapPreview(preview),
-                ),
-            )
-        }
-    }
-
-    /** "Okay" in the panel-width dialog — the toggle and all three shares land in one write. */
-    suspend fun setPanelWidths(s: PanelSection, enabled: Boolean, shares: PanelShares) {
-        val safe = balanceToTotal(shares)
-        context.dataStore.edit {
-            it[panelOnKey(s)] = enabled
-            it[panelCategoryKey(s)] = safe.category
-            it[panelListKey(s)] = safe.list
-            it[panelPreviewKey(s)] = safe.preview
-            if (s == PanelSection.LIVE && enabled && safe.preview == 0) {
-                it[Keys.LIVE_PREVIEW] = false
-            }
-        }
-    }
-
     /** Preferred audio language (ISO code, mpv alang); blank = no preference. */
     val preferredAudioLang: Flow<String> = prefsFlow { it[Keys.PREF_AUDIO_LANG] ?: "" }
 
@@ -1384,13 +1301,8 @@ class SettingsRepository(private val context: Context, private val localeStore: 
     /** Whether focusing a channel auto-plays it in the Live preview pane. */
     val livePreviewEnabled: Flow<Boolean> = prefsFlow { it[Keys.LIVE_PREVIEW] ?: true }
 
-    /** False only while a saved, enabled Live layout has intentionally hidden its preview panel. */
-    val livePreviewPanelActive: Flow<Boolean> = prefsFlow { !livePreviewPanelHidden(it) }
-
     suspend fun setLivePreviewEnabled(enabled: Boolean) {
-        context.dataStore.edit {
-            if (!enabled || !livePreviewPanelHidden(it)) it[Keys.LIVE_PREVIEW] = enabled
-        }
+        context.dataStore.edit { it[Keys.LIVE_PREVIEW] = enabled }
     }
 
     /** Whether the Live preview plays audio (off by default so browsing stays quiet). */
@@ -1814,10 +1726,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         // The STATIC-mode hidden set rides with backup so a reinstall keeps the user's hidden icons.
         Keys.NAV_MENU_HIDDEN,
     )
-    private val backupIntKeys = listOf(Keys.FOCUS_HIGHLIGHT_WIDTH, Keys.DEFAULT_VOLUME, Keys.SEEK_STEP_SEC, Keys.LIVE_REWIND_STEP_SEC, Keys.UI_ZOOM_PCT, Keys.FONT_SIZE_PCT, Keys.AUDIO_DELAY_MS, Keys.CATCHUP_OFFSET_MIN, Keys.EPG_OFFSET_MIN, Keys.PROXY_PORT, Keys.DNS_PORT, Keys.CH_NAV_UP_SKIP, Keys.CH_NAV_DOWN_SKIP, Keys.MINI_PLAYER_SIZE_PCT, Keys.LIVE_LATENCY_CUSTOM_SECS, Keys.LIVE_PREROLL_SECS, Keys.GLASS_SCOPE, Keys.GLASS_ALPHA, Keys.GLASS_BLUR, Keys.GLASS_HIGHLIGHT, Keys.SUB_BG_OPACITY,
-        Keys.PANEL_W_LIVE_CAT, Keys.PANEL_W_LIVE_LIST, Keys.PANEL_W_LIVE_PREVIEW,
-        Keys.PANEL_W_MOVIES_CAT, Keys.PANEL_W_MOVIES_LIST, Keys.PANEL_W_MOVIES_PREVIEW,
-        Keys.PANEL_W_SERIES_CAT, Keys.PANEL_W_SERIES_LIST, Keys.PANEL_W_SERIES_PREVIEW)
+    private val backupIntKeys = listOf(Keys.FOCUS_HIGHLIGHT_WIDTH, Keys.DEFAULT_VOLUME, Keys.SEEK_STEP_SEC, Keys.LIVE_REWIND_STEP_SEC, Keys.UI_ZOOM_PCT, Keys.FONT_SIZE_PCT, Keys.AUDIO_DELAY_MS, Keys.CATCHUP_OFFSET_MIN, Keys.EPG_OFFSET_MIN, Keys.PROXY_PORT, Keys.DNS_PORT, Keys.CH_NAV_UP_SKIP, Keys.CH_NAV_DOWN_SKIP, Keys.MINI_PLAYER_SIZE_PCT, Keys.LIVE_LATENCY_CUSTOM_SECS, Keys.LIVE_PREROLL_SECS, Keys.GLASS_SCOPE, Keys.GLASS_ALPHA, Keys.GLASS_BLUR, Keys.GLASS_HIGHLIGHT, Keys.SUB_BG_OPACITY)
     private val backupBoolKeys = listOf(
         Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.HDR_ENABLED, Keys.AUTO_FRAME_RATE, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.ANDROID_TV_HOME, Keys.HW_DECODING,
         Keys.VOD_PREFER_EXO, Keys.MEASURED_STREAM_STATS, Keys.DETAILED_DIAGNOSTICS, Keys.DIRECT_TUNE, Keys.EXTERNAL_PLAYER,
@@ -1827,7 +1736,6 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         Keys.REMEMBER_LAST_LIVE, Keys.REMEMBER_LAST_MOVIES, Keys.REMEMBER_LAST_SERIES,
         Keys.REMEMBER_CAT_LIVE, Keys.REMEMBER_CAT_MOVIES, Keys.REMEMBER_CAT_SERIES,
         Keys.SUB_STYLE_ENABLED, Keys.SUB_SEARCH_FILTER, Keys.DEINTERLACE,
-        Keys.PANEL_W_LIVE_ON, Keys.PANEL_W_MOVIES_ON, Keys.PANEL_W_SERIES_ON,
         Keys.AMBIENT_GLOW_ENABLED, Keys.AMBIENT_GLOW_PULSE,
         Keys.GLASS_ALLOW_FULL_TRANSPARENCY, Keys.GLASS_DEPTH_EFFECTS,
     )
@@ -1882,9 +1790,6 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             backupIntKeys.forEach { k -> if (o.has(k.name)) prefs[k] = o.getInt(k.name) }
             backupBoolKeys.forEach { k -> if (o.has(k.name)) prefs[k] = o.getBoolean(k.name) }
             backupFloatKeys.forEach { k -> if (o.has(k.name)) prefs[k] = o.getDouble(k.name).toFloat() }
-            if (livePreviewPanelHidden(prefs)) {
-                prefs[Keys.LIVE_PREVIEW] = false
-            }
         }
         // Do not publish a locale while the restore is still applying database/DataStore sections.
         // The caller applies this validated value after the restore marker is cleared. Invalid data

@@ -124,7 +124,7 @@ import java.util.Locale
 
 private enum class TileTone { PRIMARY, SECONDARY, TERTIARY }
 
-private enum class SettingsTab { ROOT, LANGUAGE, SOURCES, EPG, PROFILES, BACKUP, VIDEO, MINI_PLAYER, CUSTOMIZE, HOME, NETWORK, DNS, METADATA, OPEN_SUBTITLES, WEATHER, NAV_MENU, CH_NAV, PANEL_WIDTH }
+private enum class SettingsTab { ROOT, LANGUAGE, SOURCES, EPG, PROFILES, BACKUP, VIDEO, MINI_PLAYER, CUSTOMIZE, HOME, NETWORK, DNS, METADATA, OPEN_SUBTITLES, WEATHER, NAV_MENU, CH_NAV }
 
 @Composable
 private fun surroundModeLabel(mode: SurroundMode): String = stringResource(
@@ -195,7 +195,6 @@ fun SettingsScreen(
     var showStartupChannelPicker by remember { mutableStateOf(false) }
     var showErrorLog by remember { mutableStateOf(false) }
     var showAfrWarning by remember { mutableStateOf(false) }
-    var showLivePreviewPanelWarning by remember { mutableStateOf(false) }
     var showBgImageChooser by remember { mutableStateOf(false) }
     var showBgPicker by remember { mutableStateOf(false) }
     var showBgRemote by remember { mutableStateOf(false) }
@@ -242,13 +241,13 @@ fun SettingsScreen(
     // doesn't visibly jump/scroll when the dialog opens or when we refocus the opener row afterward.
     val scrollState = rememberScrollState()
     var savedScroll by remember { mutableIntStateOf(0) }
-    val anyDialogOpen = showZoom || showFontCustomization || showTheme || showAccent || showFolderPicker || showUpdate || showAbout || showCatchupTime || showEpgOffset || showClearHistory || showAnimations || showStartup || showStartupChannelPicker || showErrorLog || showAfrWarning || showLivePreviewPanelWarning || showBgImageChooser || showBgPicker || showGlassEffect || showAmbientGlow || showBrowsing
+    val anyDialogOpen = showZoom || showFontCustomization || showTheme || showAccent || showFolderPicker || showUpdate || showAbout || showCatchupTime || showEpgOffset || showClearHistory || showAnimations || showStartup || showStartupChannelPicker || showErrorLog || showAfrWarning || showBgImageChooser || showBgPicker || showGlassEffect || showAmbientGlow || showBrowsing
     // When a dialog closes, restore focus to the row that opened it. NOTE: this restore crosses
     // INTO the root focus group from outside (the dialog), but onEnter does NOT fire for programmatic
     // requestsFocus (only for directional entry) — so dialogReturn must be cleared HERE, not in onEnter.
     // If it's left set, the next directional entry (e.g. sidebar→here) would re-route to a stale row.
     var dialogReturn by remember { mutableStateOf<FocusRequester?>(null) }
-    LaunchedEffect(showZoom, showFontCustomization, showTheme, showAccent, showFolderPicker, showUpdate, showAbout, showCatchupTime, showEpgOffset, showClearHistory, showAnimations, showStartup, showStartupChannelPicker, showErrorLog, showAfrWarning, showLivePreviewPanelWarning, showBgImageChooser, showBgPicker, showGlassEffect, showAmbientGlow, showBrowsing) {
+    LaunchedEffect(showZoom, showFontCustomization, showTheme, showAccent, showFolderPicker, showUpdate, showAbout, showCatchupTime, showEpgOffset, showClearHistory, showAnimations, showStartup, showStartupChannelPicker, showErrorLog, showAfrWarning, showBgImageChooser, showBgPicker, showGlassEffect, showAmbientGlow, showBrowsing) {
         if (!anyDialogOpen) {
             // When a scrim dialog is torn down, Compose's focus re-search through the newly-exposed
             // scrollable Column resets its scroll to 0 and then bringIntoView-animates to wherever
@@ -270,7 +269,6 @@ fun SettingsScreen(
     val languageChip = languageChipText(currentLocaleTag)
     val downloadRoot by settingsVm.downloadRoot.collectAsStateWithLifecycle()
     val livePreview by settingsVm.livePreviewEnabled.collectAsStateWithLifecycle()
-    val livePreviewPanelActive by settingsVm.livePreviewPanelActive.collectAsStateWithLifecycle()
     val previewAudio by settingsVm.livePreviewAudio.collectAsStateWithLifecycle()
     val hdr by settingsVm.hdrEnabled.collectAsStateWithLifecycle()
     val autoFrameRate by settingsVm.autoFrameRate.collectAsStateWithLifecycle()
@@ -309,11 +307,6 @@ fun SettingsScreen(
     val rememberCatLive by settingsVm.rememberCategoryLive.collectAsStateWithLifecycle()
     val rememberCatMovies by settingsVm.rememberCategoryMovies.collectAsStateWithLifecycle()
     val rememberCatSeries by settingsVm.rememberCategorySeries.collectAsStateWithLifecycle()
-    // "Custom" on the Panel Width row as soon as any one of the three sections is switched on.
-    val panelWidthLive by settingsVm.panelWidthEnabled.getValue(tv.own.owntv.features.settings.data.PanelSection.LIVE).collectAsStateWithLifecycle()
-    val panelWidthMovies by settingsVm.panelWidthEnabled.getValue(tv.own.owntv.features.settings.data.PanelSection.MOVIES).collectAsStateWithLifecycle()
-    val panelWidthSeries by settingsVm.panelWidthEnabled.getValue(tv.own.owntv.features.settings.data.PanelSection.SERIES).collectAsStateWithLifecycle()
-    val panelWidthCustom = panelWidthLive || panelWidthMovies || panelWidthSeries
 
     // Auto frame rate is the one toggle that can make the picture visibly worse on the wrong hardware:
     // below Android 12 there is no way to ask the display which refresh rates it can reach without
@@ -328,16 +321,8 @@ fun SettingsScreen(
             settingsVm.setAutoFrameRate(!autoFrameRate)
         }
     }
-    val toggleLivePreview: (FocusRequester) -> Unit = { returnFocus ->
-        if (livePreview) {
-            settingsVm.setLivePreviewEnabled(false)
-        } else if (!livePreviewPanelActive) {
-            savedScroll = scrollState.value
-            dialogReturn = returnFocus
-            showLivePreviewPanelWarning = true
-        } else {
-            settingsVm.setLivePreviewEnabled(true)
-        }
+    val toggleLivePreview: (FocusRequester) -> Unit = { _ ->
+        settingsVm.setLivePreviewEnabled(!livePreview)
     }
 
     // Restore focus to the row a sub-screen was opened from when the user navigates back.
@@ -359,7 +344,6 @@ fun SettingsScreen(
         SettingsTab.WEATHER to FocusRequester(),
         SettingsTab.NAV_MENU to FocusRequester(),
         SettingsTab.CH_NAV to FocusRequester(),
-        SettingsTab.PANEL_WIDTH to FocusRequester(),
     ) }
     val open: (SettingsTab) -> Unit = { lastTab = it; tab = it }
     // Restore focus to the row a sub-screen was opened from when the user navigates back. Fresh entry
@@ -392,7 +376,6 @@ fun SettingsScreen(
         SettingsTab.WEATHER -> { tv.own.owntv.features.settings.WeatherSettingsScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier); return }
         SettingsTab.NAV_MENU -> { tv.own.owntv.features.settings.NavMenuSettingsScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier); return }
         SettingsTab.CH_NAV -> { tv.own.owntv.features.settings.ChNavSettingsScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier); return }
-        SettingsTab.PANEL_WIDTH -> { tv.own.owntv.features.settings.PanelWidthSettingsScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier); return }
         SettingsTab.ROOT -> Unit
     }
 
@@ -530,15 +513,6 @@ fun SettingsScreen(
             chipTone = if (chNavEnabled) TileTone.PRIMARY else TileTone.SECONDARY,
             onClick = { open(SettingsTab.CH_NAV) }, showChevron = true,
             modifier = Modifier.focusRequester(rowFocus.getValue(SettingsTab.CH_NAV)),
-        )
-        SettingsRow(
-            tone = TileTone.PRIMARY, icon = OwnTVIcon.ZOOM,
-            title = stringResource(R.string.settings_panel_width),
-            desc = stringResource(R.string.settings_panel_width_description),
-            chip = if (panelWidthCustom) stringResource(R.string.settings_live_latency_custom) else stringResource(R.string.settings_subtitle_default),
-            chipTone = if (panelWidthCustom) TileTone.PRIMARY else TileTone.SECONDARY,
-            onClick = { open(SettingsTab.PANEL_WIDTH) }, showChevron = true,
-            modifier = Modifier.focusRequester(rowFocus.getValue(SettingsTab.PANEL_WIDTH)),
         )
         SettingsRow(
             tone = TileTone.PRIMARY, icon = OwnTVIcon.PLAYLIST,
@@ -824,8 +798,6 @@ fun SettingsScreen(
                     chip = navModeLabel(navMenuMode), chipTone = if (navMenuMode == tv.own.owntv.features.settings.data.SettingsRepository.NavMenuMode.DYNAMIC) TileTone.PRIMARY else TileTone.SECONDARY) { open(SettingsTab.NAV_MENU) },
                 SettingsSearchEntry(stringResource(R.string.settings_group_content), stringResource(R.string.settings_ch_paging), stringResource(R.string.settings_search_keywords_ch), OwnTVIcon.PLAYLIST, TileTone.PRIMARY,
                     chip = if (chNavEnabled) stringResource(R.string.common_on) else stringResource(R.string.common_off), chipTone = if (chNavEnabled) TileTone.PRIMARY else TileTone.SECONDARY) { open(SettingsTab.CH_NAV) },
-                SettingsSearchEntry(stringResource(R.string.settings_group_content), stringResource(R.string.settings_panel_width), stringResource(R.string.settings_search_keywords_panel_width), OwnTVIcon.ZOOM, TileTone.PRIMARY,
-                    chip = if (panelWidthCustom) stringResource(R.string.settings_live_latency_custom) else stringResource(R.string.settings_subtitle_default), chipTone = if (panelWidthCustom) TileTone.PRIMARY else TileTone.SECONDARY) { open(SettingsTab.PANEL_WIDTH) },
                 SettingsSearchEntry(stringResource(R.string.settings_group_content), stringResource(R.string.settings_browsing_lists), stringResource(R.string.settings_search_keywords_browsing), OwnTVIcon.PLAYLIST, TileTone.PRIMARY) { savedScroll = scrollState.value; dialogReturn = browsingRowFocus; showBrowsing = true },
                 SettingsSearchEntry(stringResource(R.string.settings_group_content), stringResource(R.string.settings_home_root), stringResource(R.string.settings_search_keywords_home), OwnTVIcon.HOME, TileTone.SECONDARY) { open(SettingsTab.HOME) },
                 SettingsSearchEntry(stringResource(R.string.settings_group_content), stringResource(R.string.settings_metadata), stringResource(R.string.settings_search_keywords_metadata), OwnTVIcon.VIDEO, TileTone.PRIMARY) { open(SettingsTab.METADATA) },
@@ -1086,9 +1058,6 @@ fun SettingsScreen(
             onEnable = { settingsVm.setAutoFrameRate(true); showAfrWarning = false },
             onDismiss = { showAfrWarning = false },
         )
-    }
-    if (showLivePreviewPanelWarning) {
-        LivePreviewPanelHiddenDialog(onDismiss = { showLivePreviewPanelWarning = false })
     }
     if (showFolderPicker) {
         StorageBrowser(
@@ -1846,41 +1815,6 @@ private fun AutoFrameRateWarningDialog(onEnable: () -> Unit, onDismiss: () -> Un
                     stringResource(R.string.settings_auto_frame_rate_turn_on_anyway),
                     onClick = onEnable,
                     style = OwnTVButtonStyle.SECONDARY,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LivePreviewPanelHiddenDialog(onDismiss: () -> Unit) {
-    val colors = OwnTVTheme.colors
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
-    BackHandler { onDismiss() }
-    Box(
-        modifier = Modifier.fillMaxSize().modalScrim().trapAllFocusExit().focusGroup(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(Modifier.dialogPanel(width = 500.dp, padding = 28.dp)) {
-            Text(
-                stringResource(R.string.settings_live_preview_panel_hidden_title),
-                style = MaterialTheme.typography.titleLarge,
-                color = colors.onSurface,
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                stringResource(R.string.settings_live_preview_panel_hidden_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(22.dp))
-            Row(Modifier.fillMaxWidth()) {
-                Spacer(Modifier.weight(1f))
-                OwnTVButton(
-                    stringResource(R.string.common_ok),
-                    onClick = onDismiss,
-                    modifier = Modifier.focusRequester(focus),
                 )
             }
         }

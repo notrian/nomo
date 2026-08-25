@@ -71,14 +71,7 @@ import tv.own.owntv.ui.components.TextInputDialog
 import tv.own.owntv.core.model.DownloadStatus
 import tv.own.owntv.features.live.LiveKey
 import tv.own.owntv.features.live.displayLabel
-import tv.own.owntv.features.settings.data.PanelSection
-import tv.own.owntv.features.settings.data.BrowseColumnGap
-import tv.own.owntv.features.settings.data.BrowseColumnDividerSpace
-import tv.own.owntv.features.settings.data.BrowseContainerPadding
-import tv.own.owntv.features.settings.data.browsePanelGapTotal
-import tv.own.owntv.features.settings.data.computePanelWidths
 import tv.own.owntv.features.settings.data.SettingsRepository
-import tv.own.owntv.features.settings.rememberPanelShares
 import tv.own.owntv.features.shell.components.CategoryFilterRow
 import tv.own.owntv.features.shell.components.PreviewPane
 import tv.own.owntv.features.shell.components.RailCategory
@@ -381,7 +374,7 @@ private fun SeriesGrid(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(BrowseContainerPadding)
+            .padding(Dimens.BrowseContainerPadding)
             .onFocusChanged { if (it.hasFocus) onChildFocused() },
     ) {
         Text(stringResource(R.string.content_section_category, stringResource(R.string.common_nav_series), selectedLabel), style = MaterialTheme.typography.headlineLarge, color = OwnTVTheme.colors.onSurface)

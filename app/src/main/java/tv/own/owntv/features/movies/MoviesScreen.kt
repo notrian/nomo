@@ -68,7 +68,6 @@ import tv.own.owntv.ui.components.TextInputDialog
 import tv.own.owntv.core.model.DownloadStatus
 import tv.own.owntv.features.live.LiveKey
 import tv.own.owntv.features.live.displayLabel
-import tv.own.owntv.features.settings.data.BrowseContainerPadding
 import tv.own.owntv.features.settings.data.SettingsRepository
 import tv.own.owntv.features.shell.components.CategoryFilterRow
 import tv.own.owntv.features.shell.components.MediaDetailsScreen
@@ -296,7 +295,7 @@ fun MoviesScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(BrowseContainerPadding)
+            .padding(Dimens.BrowseContainerPadding)
             .onFocusChanged { if (it.hasFocus) onChildFocused() },
     ) {
         Text(stringResource(R.string.content_section_category, stringResource(R.string.common_nav_movies), selectedLabel), style = MaterialTheme.typography.headlineLarge, color = OwnTVTheme.colors.onSurface)

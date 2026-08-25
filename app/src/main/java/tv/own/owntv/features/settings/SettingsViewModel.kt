@@ -48,8 +48,6 @@ import tv.own.owntv.core.database.dao.resolveExistingProfileId
 import tv.own.owntv.core.launcher.LauncherIntegrationRepository
 import tv.own.owntv.features.settings.data.ChNavLimits
 import tv.own.owntv.features.settings.data.EpgAutoRefresh
-import tv.own.owntv.features.settings.data.PanelSection
-import tv.own.owntv.features.settings.data.PanelShares
 import tv.own.owntv.features.settings.data.PlaylistAutoRefresh
 import tv.own.owntv.features.settings.data.SettingsRepository
 import tv.own.owntv.features.settings.data.SubtitleStyle
@@ -262,9 +260,6 @@ class SettingsViewModel(
     }
 
     val livePreviewEnabled: StateFlow<Boolean> = settings.livePreviewEnabled
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
-
-    val livePreviewPanelActive: StateFlow<Boolean> = settings.livePreviewPanelActive
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     fun setLivePreviewEnabled(enabled: Boolean) {
@@ -595,19 +590,6 @@ class SettingsViewModel(
     fun setChNavUpSkip(n: Int) { viewModelScope.launch { settings.setChNavUpSkip(n) } }
     val chNavDownSkip: StateFlow<Int> = settings.chNavDownSkip.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChNavLimits.DEFAULT_SKIP)
     fun setChNavDownSkip(n: Int) { viewModelScope.launch { settings.setChNavDownSkip(n) } }
-
-    // --- Manual panel widths: one StateFlow per section, so Live/Movies/Series each read their own ---
-    private fun <T> panelFlows(source: (PanelSection) -> kotlinx.coroutines.flow.Flow<T>, initial: T): Map<PanelSection, StateFlow<T>> =
-        PanelSection.entries.associateWith {
-            source(it).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initial)
-        }
-
-    val panelWidthEnabled: Map<PanelSection, StateFlow<Boolean>> = panelFlows(settings::panelWidthEnabled, false)
-    val panelShares: Map<PanelSection, StateFlow<PanelShares?>> = panelFlows(settings::panelShares, null)
-
-    fun setPanelWidths(s: PanelSection, enabled: Boolean, shares: PanelShares) {
-        viewModelScope.launch { settings.setPanelWidths(s, enabled, shares) }
-    }
 
     val preferredAudioLang: StateFlow<String> = settings.preferredAudioLang.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
     fun setPreferredAudioLang(lang: String) { viewModelScope.launch { settings.setPreferredAudioLang(lang) } }

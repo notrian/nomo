@@ -71,7 +71,6 @@ import tv.own.owntv.core.database.entity.ChannelEntity
 import tv.own.owntv.core.database.entity.ContentOrderEntity
 import tv.own.owntv.features.customize.MoveToCategoryDialog
 import tv.own.owntv.features.settings.SettingsViewModel
-import tv.own.owntv.features.settings.data.BrowseContainerPadding
 import tv.own.owntv.features.shell.components.CategoryFilterRow
 import tv.own.owntv.ui.components.MoveOrderOverlay
 import tv.own.owntv.features.shell.components.RailCategory
@@ -323,7 +322,7 @@ fun LiveScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(BrowseContainerPadding)
+            .padding(Dimens.BrowseContainerPadding)
             .onFocusChanged { if (it.hasFocus) onChildFocused() },
     ) {
         Column(

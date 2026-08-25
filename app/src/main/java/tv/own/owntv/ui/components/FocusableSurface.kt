@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import tv.own.owntv.ui.theme.Dimens
 import tv.own.owntv.ui.theme.GlassSurface
 import tv.own.owntv.ui.theme.GlassInteraction
@@ -190,6 +191,11 @@ fun FocusableSurface(
 
     Box(
         modifier = modifier
+            // A scaled-up focused card (e.g. PosterCard's 1.06x) overflows its own grid cell into
+            // the gap between cells. Without a z-index bump, whichever sibling cell composes/draws
+            // after it in index order paints over that overflow, reading as a clipped edge even
+            // though nothing is actually being clipped. Elevating only the focused item fixes it.
+            .zIndex(if (focused) 1f else 0f)
             .then(
                 if (motion != null) Modifier.onGloballyPositioned { coordinates ->
                     val bounds = coordinates.boundsInRoot()

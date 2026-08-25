@@ -342,13 +342,13 @@ private fun DetailPane(
 
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(Dimens.CardCorner))
             .background(colors.surfaceContainerLowest)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)).background(colors.surfaceContainerHigh),
+            modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(Dimens.RadiusMedium)).background(colors.surfaceContainerHigh),
             contentAlignment = Alignment.Center,
         ) {
             if (!posterUrl.isNullOrBlank()) {
@@ -368,14 +368,14 @@ private fun DetailPane(
         FocusableSurface(
             onClick = action,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(Dimens.RadiusMedium),
             contentAlignment = Alignment.Center,
             surface = GlassSurface.CARDS,
         ) { focused ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (focused) colors.primary else colors.primaryContainer, RoundedCornerShape(12.dp))
+                    .background(if (focused) colors.primary else colors.primaryContainer, RoundedCornerShape(Dimens.RadiusMedium))
                     .padding(vertical = 12.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,

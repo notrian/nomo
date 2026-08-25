@@ -3,11 +3,11 @@ package tv.own.owntv.features.live
 import tv.own.owntv.core.epg.displayLogoUrl
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,7 +45,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,16 +71,9 @@ import tv.own.owntv.core.database.entity.ChannelEntity
 import tv.own.owntv.core.database.entity.ContentOrderEntity
 import tv.own.owntv.features.customize.MoveToCategoryDialog
 import tv.own.owntv.features.settings.SettingsViewModel
-import tv.own.owntv.features.settings.data.BrowseColumnGap
-import tv.own.owntv.features.settings.data.BrowseColumnDividerSpace
 import tv.own.owntv.features.settings.data.BrowseContainerPadding
-import tv.own.owntv.features.settings.data.PanelSection
-import tv.own.owntv.features.settings.data.browsePanelGapTotal
-import tv.own.owntv.features.settings.data.computePanelWidths
-import tv.own.owntv.features.settings.rememberPanelShares
-import tv.own.owntv.features.shell.components.CategoryRail
+import tv.own.owntv.features.shell.components.CategoryFilterRow
 import tv.own.owntv.ui.components.MoveOrderOverlay
-import tv.own.owntv.features.shell.components.PreviewPane
 import tv.own.owntv.features.shell.components.RailCategory
 import tv.own.owntv.ui.components.chNavPaging
 import tv.own.owntv.ui.components.jumpLazyListTo
@@ -85,6 +85,7 @@ import tv.own.owntv.ui.components.ChannelGenre
 import tv.own.owntv.ui.components.OwnTVButton
 import tv.own.owntv.ui.components.OwnTVButtonStyle
 import tv.own.owntv.ui.components.OwnTVIcon
+import tv.own.owntv.ui.components.OwnTVIconButton
 import tv.own.owntv.ui.components.OwnTVSpinner
 import tv.own.owntv.ui.components.SearchBar
 import tv.own.owntv.ui.components.SortChip
@@ -189,20 +190,16 @@ fun LiveScreen(
     LaunchedEffect(selectedKey, rememberLive) {
         if (!rememberLive) runCatching { listState.scrollToItem(0) }
     }
-    val catListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val chromeScrollThresholdPx = with(LocalDensity.current) { 8.dp.roundToPx() }
-    val contentScrolled by remember(effectiveListState, catListState, chromeScrollThresholdPx) {
+    val contentScrolled by remember(effectiveListState, chromeScrollThresholdPx) {
         androidx.compose.runtime.derivedStateOf {
             effectiveListState.firstVisibleItemIndex > 0 ||
-                effectiveListState.firstVisibleItemScrollOffset > chromeScrollThresholdPx ||
-                catListState.firstVisibleItemIndex > 0 ||
-                catListState.firstVisibleItemScrollOffset > chromeScrollThresholdPx
+                effectiveListState.firstVisibleItemScrollOffset > chromeScrollThresholdPx
         }
     }
     LaunchedEffect(contentScrolled) { onContentScrolled(contentScrolled) }
     val scope = rememberCoroutineScope()
     var channelPaneFocused by remember { mutableStateOf(false) }
-    var railPaneFocused by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf<ChannelEntity?>(null) }
     var matchingEpg by remember { mutableStateOf<ChannelEntity?>(null) }
     var offsettingEpg by remember { mutableStateOf<ChannelEntity?>(null) }
@@ -214,6 +211,9 @@ fun LiveScreen(
         mutableStateOf<Pair<ChannelEntity, tv.own.owntv.core.database.entity.EpgProgrammeEntity>?>(null)
     }
     var contextChannel by remember { mutableStateOf<ChannelEntity?>(null) } // long-press quick menu
+    // Detail page (mockup's primary tap destination) — hosts the real live preview that used to live
+    // in an always-visible third pane. Non-null = a channel's tap opened it.
+    var detailsChannel by remember { mutableStateOf<ChannelEntity?>(null) }
     // The channel the "Move to category…" flow is moving (issue #87), with the origin captured at
     // menu-open time (the rail can't change under the modal, but capturing is still safer).
     var moveItem by remember { mutableStateOf<ChannelEntity?>(null) }
@@ -320,64 +320,15 @@ fun LiveScreen(
     val selectedItem = railItems.getOrNull(selectedIndex)
     val selectedLabel = selectedItem?.displayLabel() ?: stringResource(R.string.content_category_all_channels)
 
-    // Manual panel widths (Settings → Panel Width Adjustment). The saved percentages now resolve
-    // against the inside of one shared content container; no stored value is rewritten.
-    val panelShares = rememberPanelShares(PanelSection.LIVE, settingsVm)
-    BoxWithConstraints(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .padding(BrowseContainerPadding)
             .onFocusChanged { if (it.hasFocus) onChildFocused() },
     ) {
-    val previewVisible = panelShares?.preview != 0
-    val innerGapTotal = browsePanelGapTotal(previewVisible)
-    val panels = panelShares?.let { computePanelWidths(it, maxWidth, innerGapTotal) }
-    Row(
-        modifier = Modifier
-            .fillMaxSize(),
-    ) {
-        CategoryRail(
-            width = panels?.category ?: Dimens.RailWidthFixed,
-            categories = railItems.map { RailCategory(it.displayLabel(), it.icon, showGenreDot = it.key is LiveKey.Folder) },
-            selectedIndex = selectedIndex,
-            onSelect = { idx -> railItems.getOrNull(idx)?.let { vm.select(it.key) } },
-            // Focusing a folder stops the in-pane preview — but only when a preview is actually running.
-            // When the player is docked (live PiP) or fullscreen, previewEnabled is false and stopPreview
-            // would kill that stream (e.g. while navigating left to leave Live), so we skip it.
-            onFocused = { if (previewEnabled) vm.stopPreview() },
-            listState = catListState,
-            showPanel = false,
-            modifier = Modifier
-                .onFocusChanged { railPaneFocused = it.hasFocus }
-                .chNavPaging(
-                    enabled = chNavEnabled,
-                    upSkip = chNavUpSkip,
-                    downSkip = chNavDownSkip,
-                    isFocused = { railPaneFocused },
-                    lastIndex = { railItems.size - 1 },
-                    currentTargetIndex = { selectedIndex },
-                    // Selecting a category loads only its first paged page (~50 items), not all channels
-                    // at once, so this is fast. The rail's LaunchedEffect scrolls + focuses the pill.
-                    onJumpToIndex = { idx -> railItems.getOrNull(idx)?.let { vm.select(it.key) } },
-                ),
-        )
-
-        Spacer(Modifier.width(BrowseColumnGap))
-        Box(
-            Modifier
-                .width(BrowseColumnDividerSpace)
-                .fillMaxHeight()
-                .padding(vertical = 2.dp)
-                .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
-        )
-
-        Spacer(Modifier.width(BrowseColumnGap))
-
-        // Layer 3 — header + channel list (fixed-width column; the preview pane fills the rest)
         Column(
             modifier = Modifier
-                .width(panels?.list ?: Dimens.ChannelListWidth)
-                .fillMaxHeight()
+                .fillMaxSize()
                 // Track whether this pane holds focus so chNavPaging only consumes CH keys when it does.
                 .onFocusChanged { channelPaneFocused = it.hasFocus }
                 // CH+- key paging for this channel list. Long-press jumps to first/last channel;
@@ -465,6 +416,16 @@ fun LiveScreen(
             }
             Spacer(Modifier.height(14.dp))
 
+            // Horizontal category filter row (matches the mockup's .filter-rail) — replaces the
+            // vertical CategoryRail. Real playlists can have far more categories than fit as chips, so
+            // CategoryFilterRow itself handles overflow via a "More" picker.
+            CategoryFilterRow(
+                categories = railItems.map { RailCategory(it.displayLabel(), it.icon, showGenreDot = it.key is LiveKey.Folder) },
+                selectedIndex = selectedIndex,
+                onSelect = { idx -> railItems.getOrNull(idx)?.let { vm.select(it.key) } },
+            )
+            Spacer(Modifier.height(14.dp))
+
             if (channels.itemCount == 0) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -494,12 +455,7 @@ fun LiveScreen(
                                     firstItemFocus = firstItemFocus,
                                 ),
                                 onFocus = { vm.onChannelFocused(channel) },
-                                onClick = {
-                                    vm.watchFullscreen(channel, channels.itemSnapshotList.items.filterNotNull())
-                                    // External player on for Live TV: the channel went to another app, so
-                                    // don't mount the fullscreen player (it would spin up an idle engine).
-                                    if (!externalPlayerOn) onFullscreen()
-                                },
+                                onClick = { detailsChannel = channel },
                                 onLongClick = { contextChannel = channel; contextChannelId = channel.id },
                             )
                         }
@@ -507,35 +463,32 @@ fun LiveScreen(
                 }
             }
         }
-
-        // Layer 4 — preview pane (informational only — no focusable actions; management lives in long-press)
-        if (previewVisible) {
-            Spacer(Modifier.width(BrowseColumnGap))
-            Box(
-                Modifier
-                    .width(BrowseColumnDividerSpace)
-                    .fillMaxHeight()
-                    .padding(vertical = 2.dp)
-                    .background(OwnTVTheme.colors.outlineVariant.copy(alpha = 0.35f)),
-            )
-            Spacer(Modifier.width(BrowseColumnGap))
-            Box(
-                modifier = Modifier
-                    .then(if (panels != null) Modifier.width(panels.preview) else Modifier.weight(1f))
-                    .fillMaxSize()
-                    .padding(BrowseContainerPadding),
-            ) {
-                LivePreviewPane(
-                    channel = previewChannel,
-                    categoryName = previewCategoryName,
-                    nowNext = nowNext,
-                    previewEngine = vm.previewEngine,
-                    showVideo = effectivePreview,
-                    singleSessionBlocked = previewBlockedSingleSession,
-                )
-            }
-        }
     }
+
+    // Detail page (mockup's primary tap destination): hosts the real live preview that used to live
+    // in an always-visible third pane, plus the channel's metadata/EPG. Committing to "Watch channel"
+    // is the same Detail → action → player flow Movies/Series use. Opening this page is itself the
+    // "I want to preview" signal, so it starts the preview unconditionally — not gated on the ambient
+    // "live preview" list setting, which only governs the passive channel-row auto-preview.
+    detailsChannel?.let { ch ->
+        LaunchedEffect(ch.id, previewEnabled) {
+            if (previewEnabled) vm.playPreview(ch)
+        }
+        ChannelDetailScreen(
+            channel = ch,
+            categoryName = previewCategoryName,
+            nowNext = nowNext,
+            previewEngine = vm.previewEngine,
+            singleSessionBlocked = previewBlockedSingleSession,
+            isFavorite = favoriteIds.contains(ch.id),
+            onToggleFavorite = { vm.toggleFavorite(ch) },
+            onWatchFullscreen = {
+                vm.watchFullscreen(ch, channels.itemSnapshotList.items.filterNotNull())
+                detailsChannel = null
+                if (!externalPlayerOn) onFullscreen()
+            },
+            onExit = { detailsChannel = null; if (previewEnabled) vm.stopPreview() },
+        )
     }
 
     catchupChannel?.let { ch ->
@@ -878,106 +831,167 @@ private fun ChannelMenuDivider() {
     )
 }
 
+/**
+ * Live TV's Detail page (mockup's `.detail-hero`, matching the pattern already built for Movies/
+ * Series): full-bleed hero hosting the real video preview (not a static backdrop image — this is
+ * what used to be the always-visible third-pane [tv.own.owntv.player.ExoPreviewSurface]), back
+ * button, name/meta/EPG, and a Watch/Favorite action row. Committing to "Watch channel" is the same
+ * Detail → action → player flow Movies/Series use; management (Rename/Hide/Match EPG/…) stays in
+ * the long-press menu, unchanged.
+ */
 @Composable
-private fun LivePreviewPane(
-    channel: ChannelEntity?,
+private fun ChannelDetailScreen(
+    channel: ChannelEntity,
     categoryName: String?,
     nowNext: EpgNowNext?,
     previewEngine: tv.own.owntv.player.LivePreviewEngine,
-    showVideo: Boolean,
-    singleSessionBlocked: Boolean = false,
+    singleSessionBlocked: Boolean,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onWatchFullscreen: () -> Unit,
+    onExit: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = OwnTVTheme.colors
+    val scroll = rememberScrollState()
+    val backFocus = remember { FocusRequester() }
+    val watchFocus = remember { FocusRequester() }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) { runCatching { watchFocus.requestFocus() } }
+    androidx.activity.compose.BackHandler { onExit() }
+
     val previewState by previewEngine.state.collectAsStateWithLifecycle()
     val previewHeight by previewEngine.videoHeight.collectAsStateWithLifecycle()
     val streamChips by previewEngine.streamChips.collectAsStateWithLifecycle()
     // Show the ExoPlayer surface once it's playing/buffering; on ERROR fall back to the channel logo.
-    val previewPlaying = showVideo && previewState != tv.own.owntv.player.LivePreviewEngine.State.ERROR &&
+    val previewPlaying = previewState != tv.own.owntv.player.LivePreviewEngine.State.ERROR &&
         previewState != tv.own.owntv.player.LivePreviewEngine.State.IDLE
-    val previewLoading = showVideo && previewState == tv.own.owntv.player.LivePreviewEngine.State.LOADING
+    val previewLoading = previewState == tv.own.owntv.player.LivePreviewEngine.State.LOADING
     val videoRes = previewHeight?.let { "${it}p" }
-    if (channel == null) {
-        PreviewPane(hint = stringResource(R.string.content_focus_channel))
-        return
+
+    // Nothing below the hero's action row is focusable (EPG is display-only), so Up/Down that fails
+    // to move focus bubbles up here and becomes a scroll — same contract as MediaDetailsScreen.
+    val step = 260f
+    val onKey: (androidx.compose.ui.input.key.KeyEvent) -> Boolean = onKey@{ e ->
+        if (e.type != KeyEventType.KeyDown) return@onKey false
+        when (e.key) {
+            Key.DirectionDown -> { scope.launch { scroll.animateScrollBy(step) }; true }
+            Key.DirectionUp -> { scope.launch { scroll.animateScrollBy(-step) }; true }
+            else -> false
+        }
     }
-    Column(
-        // Scrollable so the EPG (Now/Next/Later) never gets clipped when it makes the pane taller
-        // than the screen. The pane is informational only — there are NO focusable elements here,
-        // so D-pad right never enters it (management actions live in the long-press menu).
-        modifier = Modifier.fillMaxSize()
-            .verticalScroll(rememberScrollState()).padding(Dimens.GapLarge),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp)).background(colors.surfaceContainerLowest),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (!channel.displayLogoUrl.isNullOrBlank()) {
-                AsyncImage(model = channel.displayLogoUrl, contentDescription = null, modifier = Modifier.size(120.dp))
-            } else {
-                OwnTVIcon(OwnTVIcon.LIVE_TV, tint = colors.onSurfaceVariant, modifier = Modifier.size(56.dp))
-            }
-            if (previewPlaying) {
-                tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize())
-            }
-            if (previewLoading) {
-                OwnTVSpinner(sizeDp = 28)
-            }
-            // One-stream provider with the stream already in use: explain the dead pane rather than
-            // leaving the user to read it as a broken channel (F31).
-            if (singleSessionBlocked && !previewPlaying) {
+
+    Box(modifier = modifier.fillMaxSize().background(colors.background).onKeyEvent(onKey)) {
+        Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
+            // Full-bleed hero — matches the mockup's .detail-hero (~56vh), video preview instead of
+            // a static backdrop image.
+            Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.56f)) {
                 Box(
-                    Modifier.align(Alignment.BottomCenter).padding(10.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.7f))
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                    modifier = Modifier.fillMaxSize().background(colors.surfaceContainerLowest),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        stringResource(R.string.content_preview_single_stream),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = androidx.compose.ui.graphics.Color.White,
-                    )
-                }
-            }
-            // Real stream spec — aspect · resolution · fps · audio. The channel NAME often lies ("…4K"),
-            // so this shows what you'll actually get before you commit to watching. Falls back to just the
-            // resolution until the full format is known.
-            val chips = streamChips.takeIf { it.isNotEmpty() } ?: videoRes?.let { listOf(it) }.orEmpty()
-            chips.takeIf { previewPlaying && it.isNotEmpty() }?.let { list ->
-                Row(
-                    Modifier.align(Alignment.TopStart).padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    list.forEach { label ->
+                    if (!channel.displayLogoUrl.isNullOrBlank()) {
+                        AsyncImage(model = channel.displayLogoUrl, contentDescription = null, modifier = Modifier.size(160.dp))
+                    } else {
+                        OwnTVIcon(OwnTVIcon.LIVE_TV, tint = colors.onSurfaceVariant, modifier = Modifier.size(72.dp))
+                    }
+                    if (previewPlaying) {
+                        tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize())
+                    }
+                    if (previewLoading) {
+                        OwnTVSpinner(sizeDp = 32)
+                    }
+                    // One-stream provider with the stream already in use: explain the dead preview rather
+                    // than leaving the user to read it as a broken channel (F31).
+                    if (singleSessionBlocked && !previewPlaying) {
                         Box(
-                            Modifier.clip(RoundedCornerShape(6.dp))
-                                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.6f))
-                                .padding(horizontal = 8.dp, vertical = 3.dp),
+                            Modifier.align(Alignment.BottomCenter).padding(10.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.7f))
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
                         ) {
-                            Text(label, style = MaterialTheme.typography.labelMedium, color = androidx.compose.ui.graphics.Color.White, fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.content_preview_single_stream),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = androidx.compose.ui.graphics.Color.White,
+                            )
+                        }
+                    }
+                    // Real stream spec — aspect · resolution · fps · audio. The channel NAME often lies
+                    // ("…4K"), so this shows what you'll actually get before you commit to watching.
+                    val chips = streamChips.takeIf { it.isNotEmpty() } ?: videoRes?.let { listOf(it) }.orEmpty()
+                    chips.takeIf { previewPlaying && it.isNotEmpty() }?.let { list ->
+                        Row(
+                            Modifier.align(Alignment.TopEnd).padding(top = 20.dp, end = 20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            list.forEach { label ->
+                                Box(
+                                    Modifier.clip(RoundedCornerShape(6.dp))
+                                        .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.6f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                                ) {
+                                    Text(label, style = MaterialTheme.typography.labelMedium, color = androidx.compose.ui.graphics.Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
                     }
                 }
+                Box(
+                    modifier = Modifier.fillMaxSize().background(
+                        Brush.verticalGradient(
+                            0f to colors.background.copy(alpha = 0.04f),
+                            0.5f to colors.background.copy(alpha = 0.2f),
+                            1f to colors.background,
+                        ),
+                    ),
+                )
+                OwnTVIconButton(
+                    icon = OwnTVIcon.BACK,
+                    contentDescription = stringResource(R.string.common_back),
+                    onClick = onExit,
+                    modifier = Modifier.padding(20.dp).align(Alignment.TopStart).focusRequester(backFocus),
+                )
+                Column(
+                    modifier = Modifier.align(Alignment.BottomStart).widthIn(max = 760.dp).padding(horizontal = 40.dp, vertical = 32.dp),
+                ) {
+                    Text(
+                        channel.name,
+                        style = MaterialTheme.typography.displayLarge.copy(fontFamily = tv.own.owntv.ui.theme.BrandDisplayFontFamily, fontWeight = FontWeight.Normal),
+                        color = colors.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    ChannelMetaRow(channel = channel, categoryName = categoryName, nowNext = nowNext)
+                    Spacer(Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.focusGroup(),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OwnTVButton(
+                            label = stringResource(R.string.content_epg_watch_channel),
+                            onClick = onWatchFullscreen,
+                            icon = OwnTVIcon.PLAY,
+                            modifier = Modifier.focusRequester(watchFocus),
+                        )
+                        OwnTVIconButton(
+                            icon = OwnTVIcon.FAVORITE,
+                            contentDescription = stringResource(
+                                if (isFavorite) R.string.content_remove_favourite else R.string.content_add_favourite,
+                            ),
+                            onClick = onToggleFavorite,
+                            active = isFavorite,
+                        )
+                    }
+                }
+            }
+
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp, vertical = 24.dp)) {
+                EpgSection(nowNext)
             }
         }
-        Spacer(Modifier.height(14.dp))
-        Text(channel.name, style = MaterialTheme.typography.titleLarge, color = colors.onSurface)
-
-        // Metadata row — category · inferred genre (with colour dot) · catch-up status · EPG status.
-        // All informational, never focusable.
-        ChannelMetaRow(channel = channel, categoryName = categoryName, nowNext = nowNext)
-
-        EpgSection(nowNext)
-
-        // No action buttons — all management (Favorite / Rename / Hide / Match EPG / Catch-up) is in
-        // the long-press menu. Just a hint so the watch affordance + where-to-find-options stay obvious.
-        Spacer(Modifier.height(14.dp))
-        Text(
-            stringResource(R.string.content_press_ok_fullscreen),
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
     }
 }
 

@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -121,7 +122,21 @@ fun MediaDetailsScreen(
     // no-ops against an unbounded constraint (falls back to wrap-content), collapsing the hero and
     // dragging the bottom-anchored title up into the top-anchored back button. Reading the real
     // viewport height here and applying it as a fixed dp avoids that entirely.
-    BoxWithConstraints(modifier = modifier.fillMaxSize().background(colors.background).onKeyEvent(onKey)) {
+    BoxWithConstraints(
+        modifier = modifier.fillMaxSize().background(colors.background).onKeyEvent(onKey)
+            .focusGroup()
+            // This window is rendered as an overlay ON TOP of the caller's own grid/list (Movies,
+            // Series' TMDB popup), which stays composed and focusable underneath. Without an explicit
+            // onEnter here, directional re-entry from the sidebar (e.g. Left to open it, Right to come
+            // back) can land on the hidden grid instead of this window — it's still on screen, but
+            // D-pad/OK now silently act on whatever grid item ended up focused. Claiming Play/Back
+            // here makes this window the entry target regardless of what's stacked underneath it.
+            .focusProperties {
+                onEnter = {
+                    runCatching { (if (onPlay != null) playFocus else backFocus).requestFocus() }
+                }
+            },
+    ) {
         val heroHeight = maxHeight * 0.56f
         Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
             // Full-bleed hero — matches the mockup's .detail-hero (~56vh, gradient into the page bg).

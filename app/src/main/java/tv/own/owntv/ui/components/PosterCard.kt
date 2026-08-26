@@ -42,6 +42,7 @@ fun PosterCard(
     completed: Boolean = false,
     isFavorite: Boolean = false,
     selected: Boolean = false,
+    enabled: Boolean = true,
     onFocus: () -> Unit = {},
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
@@ -52,6 +53,7 @@ fun PosterCard(
         onLongClick = onLongClick,
         modifier = modifier.onFocusChanged { if (it.hasFocus) onFocus() },
         selected = selected,
+        enabled = enabled,
         shape = RoundedCornerShape(Dimens.PosterCardCorner),
         surface = GlassSurface.CARDS,
         focusedScale = 1.06f, // matches the mockup's .card:focus-visible{transform:scale(1.06)}

@@ -46,6 +46,22 @@ import tv.own.owntv.ui.theme.OwnTVTheme
 import tv.own.owntv.ui.theme.animationsOn
 import tv.own.owntv.ui.theme.glass
 
+/**
+ * When true, every [FocusableSurface] in scope (and [SearchBar], which isn't built on it) treats
+ * itself as unfocusable regardless of its own `enabled` param — without every screen having to
+ * individually track and thread an `enabled` flag down to each grid item/chip/button it renders.
+ *
+ * Provide this around a whole content pane the moment a full-screen overlay (a Detail page, a
+ * modal) is drawn on top of it. 2D directional D-pad focus search in Compose operates on individual
+ * focusable leaf nodes' positions, not on marked ancestor-group boundaries — a `focusGroup()` +
+ * `focusProperties { canFocus = false }` on the pane's wrapping Box/Column does NOT stop the search
+ * from finding an individual focusable leaf underneath it. So with the pane behind an overlay still
+ * fully focusable per-leaf, directional re-entry from elsewhere (e.g. the sidebar) can land right
+ * back on it even though the overlay is what's actually on screen — D-pad/OK then silently act on
+ * whatever hidden control ended up focused.
+ */
+val LocalContentFocusSuspended = androidx.compose.runtime.compositionLocalOf { false }
+
 @Composable
 fun FocusableSurface(
     onClick: () -> Unit,
@@ -82,6 +98,7 @@ fun FocusableSurface(
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     val colors = OwnTVTheme.colors
+    val effectiveEnabled = enabled && !LocalContentFocusSuspended.current
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val pressed by interaction.collectIsPressedAsState()
@@ -297,14 +314,14 @@ fun FocusableSurface(
                     Modifier.combinedClickable(
                         interactionSource = interaction,
                         indication = null,
-                        enabled = enabled,
+                        enabled = effectiveEnabled,
                         onLongClick = onLongClick,
                         onClick = onClick,
                     )
                 } else {
                     Modifier.selectable(
                         selected = selected,
-                        enabled = enabled,
+                        enabled = effectiveEnabled,
                         interactionSource = interaction,
                         indication = null,
                         onClick = onClick,

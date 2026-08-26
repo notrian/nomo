@@ -73,6 +73,7 @@ fun SearchBar(
     surface: GlassSurface? = GlassSurface.CARDS,
 ) {
     val colors = OwnTVTheme.colors
+    val contentFocusSuspended = LocalContentFocusSuspended.current
     val resolvedPlaceholder = placeholder ?: stringResource(R.string.common_search_hint)
     val interaction = remember { MutableInteractionSource() }
     val pillFocused by interaction.collectIsFocusedAsState()
@@ -132,7 +133,7 @@ fun SearchBar(
                 shape = shape,
             )
             .focusRequester(pillFocus)
-            .clickable(interactionSource = interaction, indication = null) { editing = true },
+            .clickable(interactionSource = interaction, indication = null, enabled = !contentFocusSuspended) { editing = true },
         contentAlignment = Alignment.CenterStart,
     ) {
         Row(

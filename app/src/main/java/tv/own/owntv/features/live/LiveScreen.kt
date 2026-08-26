@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -80,6 +81,7 @@ import tv.own.owntv.ui.components.longPressMenuGuard
 import tv.own.owntv.ui.components.trapAllFocusExit
 import tv.own.owntv.ui.components.trapVerticalFocusExit
 import tv.own.owntv.ui.components.FocusableSurface
+import tv.own.owntv.ui.components.LocalContentFocusSuspended
 import tv.own.owntv.ui.components.ChannelGenre
 import tv.own.owntv.ui.components.OwnTVButton
 import tv.own.owntv.ui.components.OwnTVButtonStyle
@@ -319,6 +321,17 @@ fun LiveScreen(
     val selectedItem = railItems.getOrNull(selectedIndex)
     val selectedLabel = selectedItem?.displayLabel() ?: stringResource(R.string.content_category_all_channels)
 
+    // Every overlay this screen can show on top of the list (Detail page, context menu,
+    // rename/match-EPG/EPG-offset/catch-up/move dialogs): they render as siblings drawn over the
+    // list rather than replacing it, so the list stays mounted underneath. LocalContentFocusSuspended
+    // (provided below) is what actually keeps it out of directional focus search while one is open —
+    // see its doc comment for why a plain focusGroup/canFocus on this Column alone doesn't do that.
+    val listOverlayOpen = detailsChannel != null || contextChannel != null ||
+        renaming != null || matchingEpg != null || offsettingEpg != null ||
+        catchupChannel != null || catchupDetail != null ||
+        moveItem != null || creatingCategory
+
+    CompositionLocalProvider(LocalContentFocusSuspended provides listOverlayOpen) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -375,6 +388,8 @@ fun LiveScreen(
                 // Entering this pane (from the rail or the preview) must land on a channel row, never
                 // the search bar: prefer the last-focused channel, else the first row. onEnter fires
                 // only for directional entry from outside (internal moves don't re-trigger it).
+                // Individual rows go unfocusable instead while an overlay is open
+                // (LocalContentFocusSuspended, provided above), so this never actually fires then.
                 .focusProperties {
                     onEnter = {
                         if (runCatching { selFocus.requestFocus() }.isFailure) {
@@ -447,6 +462,7 @@ fun LiveScreen(
                                 isFavorite = favoriteIds.contains(channel.id),
                                 nowTitle = nowPlaying[channel.id],
                                 showNumber = showChannelNumbers,
+                                enabled = !listOverlayOpen,
                                 modifier = Modifier.gridFocusTarget(
                                     itemId = channel.id, index = index,
                                     contextId = contextChannelId, contextFocus = contextFocus,
@@ -462,6 +478,7 @@ fun LiveScreen(
                 }
             }
         }
+    }
     }
 
     // Detail page (mockup's primary tap destination): hosts the real live preview that used to live
@@ -641,6 +658,7 @@ private fun ChannelRow(
     onLongClick: (() -> Unit)? = null,
     nowTitle: String? = null,
     showNumber: Boolean = true,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val colors = OwnTVTheme.colors
@@ -650,6 +668,7 @@ private fun ChannelRow(
         modifier = modifier
             .fillMaxWidth()
             .onFocusChanged { if (it.hasFocus) onFocus() },
+        enabled = enabled,
         shape = RoundedCornerShape(12.dp),
         surface = GlassSurface.CARDS,
         contentAlignment = Alignment.CenterStart,
@@ -885,7 +904,17 @@ private fun ChannelDetailScreen(
     // no-ops against an unbounded constraint (falls back to wrap-content), collapsing the hero and
     // dragging the bottom-anchored title up into the top-anchored back button. Reading the real
     // viewport height here and applying it as a fixed dp avoids that entirely.
-    BoxWithConstraints(modifier = modifier.fillMaxSize().background(colors.background).onKeyEvent(onKey)) {
+    BoxWithConstraints(
+        modifier = modifier.fillMaxSize().background(colors.background).onKeyEvent(onKey)
+            .focusGroup()
+            // This window is rendered as an overlay ON TOP of the channel list, which stays composed
+            // and focusable underneath. Without an explicit onEnter here, directional re-entry from
+            // the sidebar (e.g. Left to open it, Right to come back) can land on the hidden list
+            // instead of this window — it's still on screen, but D-pad/OK now silently act on
+            // whatever row ended up focused. Claiming Watch here makes this window the entry target
+            // regardless of what's stacked underneath it.
+            .focusProperties { onEnter = { runCatching { watchFocus.requestFocus() } } },
+    ) {
         val heroHeight = maxHeight * 0.56f
         Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
             // Full-bleed hero — matches the mockup's .detail-hero (~56vh), video preview instead of

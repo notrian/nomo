@@ -26,6 +26,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,7 @@ import tv.own.owntv.ui.components.rememberInAppToast
 import tv.own.owntv.ui.components.OwnTVButton
 import tv.own.owntv.ui.components.OwnTVButtonStyle
 import tv.own.owntv.ui.components.FocusableSurface
+import tv.own.owntv.ui.components.LocalContentFocusSuspended
 import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.components.PosterCard
 import tv.own.owntv.ui.components.ResumeDialog
@@ -292,6 +294,17 @@ fun MoviesScreen(
         contextMovieIndex = -1
     }
 
+    // Every overlay this screen can show on top of this whole pane (Detail page, context menu,
+    // rename/move dialogs, trailer player, delete-subs confirm, resume prompt): they render as
+    // siblings drawn over this Column rather than replacing it, so the search bar/filter chips/grid
+    // stay mounted underneath. LocalContentFocusSuspended (provided below) is what actually keeps
+    // them out of directional focus search while one is open — see its doc comment for why a plain
+    // focusGroup/canFocus on this Column alone doesn't do that.
+    val gridOverlayOpen = contextMovie != null || detailsMovie != null ||
+        setTmdbNameMovie != null || trailerVideoKey != null ||
+        moveItem != null || creatingCategory || showDeleteSubs ||
+        resumePrompt != null
+    CompositionLocalProvider(LocalContentFocusSuspended provides gridOverlayOpen) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -387,7 +400,9 @@ fun MoviesScreen(
                 )
                 // Entering this pane must land on a poster, never the search bar: prefer the
                 // last-focused movie, else the first one. onEnter fires only for directional entry
-                // from outside (internal moves don't re-trigger it).
+                // from outside (internal moves don't re-trigger it). Individual items go unfocusable
+                // instead while an overlay is open (LocalContentFocusSuspended, provided above), so
+                // this never actually fires in that case.
                 .focusProperties {
                     onEnter = {
                         if (runCatching { selFocus.requestFocus() }.isFailure) {
@@ -424,6 +439,7 @@ fun MoviesScreen(
                                 movie = movie,
                                 isFavorite = favoriteIds.contains(movie.id),
                                 completed = prog?.let { vm.isMovieCompleted(it) } == true,
+                                enabled = !gridOverlayOpen,
                                 modifier = Modifier.gridFocusTarget(
                                     itemId = movie.id, index = index,
                                     contextId = contextMovieId, contextFocus = contextFocus,
@@ -462,6 +478,7 @@ fun MoviesScreen(
                                 progressFraction = if (done || prog == null || prog.durationMs <= 0) null
                                     else (prog.positionMs.toFloat() / prog.durationMs).takeIf { it > 0f },
                                 isFavorite = favoriteIds.contains(movie.id),
+                                enabled = !gridOverlayOpen,
                                 modifier = Modifier.gridFocusTarget(
                                     itemId = movie.id, index = index,
                                     contextId = contextMovieId, contextFocus = contextFocus,
@@ -477,6 +494,7 @@ fun MoviesScreen(
                 }
             }
         }
+    }
     }
 
     resumePrompt?.let { (m, pos) ->
@@ -824,6 +842,7 @@ private fun MovieListRow(
     movie: MovieEntity,
     isFavorite: Boolean,
     completed: Boolean = false,
+    enabled: Boolean = true,
     onFocus: () -> Unit,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
@@ -834,6 +853,7 @@ private fun MovieListRow(
         onClick = onClick,
         onLongClick = onLongClick,
         modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
         shape = RoundedCornerShape(12.dp),
         contentAlignment = Alignment.CenterStart,
         surface = GlassSurface.CARDS,

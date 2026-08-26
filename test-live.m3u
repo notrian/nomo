@@ -1,0 +1,29 @@
+#EXTM3U
+# Synthetic local Live TV + EPG test data — for previewing guide/EPG UI only.
+# Streams are well-known public HLS test/demo feeds (NASA TV, Apple bipbop, Mux, Wowza
+# bigbuckbunny demo), reused across several fake channel identities.
+
+#EXTINF:-1 tvg-id="test-newsone" tvg-name="Nomo News One" group-title="News",Nomo News One
+https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8
+
+#EXTINF:-1 tvg-id="test-newstwo" tvg-name="Nomo News Two" group-title="News",Nomo News Two
+https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8
+
+#EXTINF:-1 tvg-id="test-sportsone" tvg-name="Nomo Sports One" group-title="Sports",Nomo Sports One
+https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+
+#EXTINF:-1 tvg-id="test-sportstwo" tvg-name="Nomo Sports Two" group-title="Sports",Nomo Sports Two
+https://wowzaec2demo.streamlock.net/live/bigbuckbunny/playlist.m3u8
+
+#EXTINF:-1 tvg-id="test-kidsone" tvg-name="Nomo Kids One" group-title="Kids",Nomo Kids One
+https://wowzaec2demo.streamlock.net/live/bigbuckbunny/playlist.m3u8
+
+#EXTINF:-1 tvg-id="test-kidstwo" tvg-name="Nomo Kids Two" group-title="Kids",Nomo Kids Two
+https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+
+#EXTINF:-1 tvg-id="test-movieone" tvg-name="Nomo Movies One" group-title="Movies",Nomo Movies One
+https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8
+
+#EXTINF:-1 tvg-id="test-space" tvg-name="Nomo Space & Science" group-title="Space & Science",Nomo Space & Science
+https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8
+

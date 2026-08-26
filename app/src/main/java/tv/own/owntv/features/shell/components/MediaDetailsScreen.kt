@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -116,10 +116,16 @@ fun MediaDetailsScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize().background(colors.background).onKeyEvent(onKey)) {
+    // BoxWithConstraints, not a plain Box: this hero sits inside a verticalScroll Column below, and
+    // Compose measures scrollable content with unbounded height — fillMaxHeight(fraction) silently
+    // no-ops against an unbounded constraint (falls back to wrap-content), collapsing the hero and
+    // dragging the bottom-anchored title up into the top-anchored back button. Reading the real
+    // viewport height here and applying it as a fixed dp avoids that entirely.
+    BoxWithConstraints(modifier = modifier.fillMaxSize().background(colors.background).onKeyEvent(onKey)) {
+        val heroHeight = maxHeight * 0.56f
         Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
             // Full-bleed hero — matches the mockup's .detail-hero (~56vh, gradient into the page bg).
-            Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.56f)) {
+            Box(modifier = Modifier.fillMaxWidth().height(heroHeight)) {
                 Box(modifier = Modifier.fillMaxSize().background(colors.surfaceContainerLowest)) {
                     if (!details.backdropUrl.isNullOrBlank()) {
                         AsyncImage(

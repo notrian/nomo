@@ -1030,7 +1030,7 @@ private fun EpisodeView(
         // detail-hero visual language sized down (a fixed height, not 56vh) to leave most of this
         // fixed-height TV screen for the season/episode browser below, which the web mockup handles
         // by just letting the whole page scroll.
-        Box(modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(18.dp))) {
+        Box(modifier = Modifier.fillMaxWidth().height(168.dp).clip(RoundedCornerShape(18.dp))) {
             Box(modifier = Modifier.fillMaxSize().background(colors.surfaceContainerLowest)) {
                 val art = series.backdropUrl?.takeIf { it.isNotBlank() } ?: series.posterUrl
                 if (!art.isNullOrBlank()) {
@@ -1080,7 +1080,7 @@ private fun EpisodeView(
                 }
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
         // Secondary, less-frequent controls — Back/Favorite moved into the hero above.
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1119,7 +1119,7 @@ private fun EpisodeView(
                 icon = OwnTVIcon.SORT,
             )
         }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(10.dp))
 
         when {
             loading && episodes.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

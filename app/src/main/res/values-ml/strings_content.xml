@@ -193,14 +193,8 @@
     <string name="content_subtitle_select_file">ലോക്കൽ സബ്‌ടൈറ്റിൽ ഫയൽ തിരഞ്ഞെടുക്കുക</string>
     <string name="content_subtitle_load_failed">സബ്‌ടൈറ്റിൽ ഫയൽ ലോഡ് ചെയ്യാനായില്ല.</string>
     <string name="content_history">കണ്ടവയുടെ ചരിത്രം</string>
-    <string name="content_all_playlists">എല്ലാ പ്ലേലിസ്റ്റുകളും</string>
     <string name="content_search_categories">വിഭാഗങ്ങൾ തിരയുക…</string>
     <string name="content_no_categories_match">പൊരുത്തപ്പെടുന്ന വിഭാഗങ്ങളൊന്നുമില്ല</string>
-    <string name="content_action_resume">തുടരുക</string>
-    <string name="content_action_play">പ്ലേ ചെയ്യുക</string>
-    <string name="content_action_next_up">അടുത്തതായി</string>
-    <string name="content_action_last_channel">അവസാന ചാനൽ</string>
-    <string name="content_continue_label"><xliff:g id="action">%1$s</xliff:g> · <xliff:g id="name">%2$s</xliff:g></string>
     <string name="content_empty_section"><xliff:g id="section">%1$s</xliff:g> പിന്നീടുള്ള ഘട്ടത്തിൽ ലഭ്യമാകും. ഈ പട്ടികയിൽ ഉള്ളടക്കം ചേർക്കാൻ ഒരു M3U അല്ലെങ്കിൽ Xtream ഉറവിടം ചേർക്കുക.</string>
     <string name="content_progress_percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
     <string name="content_section_category"><xliff:g id="section">%1$s</xliff:g> / <xliff:g id="category">%2$s</xliff:g></string>

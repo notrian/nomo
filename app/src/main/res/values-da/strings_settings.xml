@@ -944,10 +944,7 @@
     <string name="settings_surround_auto_description">Auto – prøv Dolby/DTS-surround, og skift automatisk tilbage til stereo, hvis tv’et eller soundbaren ikke kan afspille det. Anbefalet.</string>
     <string name="settings_surround_stereo_description">Kun stereo – afkod altid i appen og send almindelig 2.0-lyd. Brug dette på tv-højttalere eller en stereo-soundbar, eller hvis lyden halter efter billedet.</string>
     <string name="settings_surround_forced_description">Surround – send Dolby/DTS til en ægte 5.1/7.1-modtager. Hvis lyden forsvinder eller hakker, falder OwnTV stadig tilbage til stereo og fortæller dig det.</string>
-    <string name="settings_panel_width">Panelbreddejustering</string>
-    <string name="settings_panel_width_description">Ændr størrelsen på kategori-, liste- og forhåndsvisningspanelerne i live-tv, film og serier.</string>
     <string name="settings_search_keywords_epg_offset">epg programguide tid offset tidsforskydning skift tidszone øst vest timer</string>
-    <string name="settings_search_keywords_panel_width">panel bredde panelbredde størrelse tilpas kategori liste forhåndsvisning plakat kolonne layout live-tv film serier</string>
     <string name="settings_search_keywords_live_preroll">forudbuffer prebuffer preroll pre-roll buffering buffer før afspilning genbuffer hakken fryser pr. playliste</string>
     <string name="settings_detailed_playback_logging">Detaljeret afspilningslogning</string>
     <string name="settings_search_keywords_detailed_logging">diagnostik verbose trace logcat fejlsøgning rapport fejl live-motor</string>
@@ -962,18 +959,6 @@
     <string name="settings_video_seconds"><xliff:g id="seconds">%1$d</xliff:g> sek. video</string>
     <string name="settings_epg_offset_root_description">Forskyd hele programguiden, når tiderne i et feed ikke passer til det, der faktisk vises. En enkelt kanal kan forskydes for sig selv via menuen ved langt tryk (live-tv eller programguide) – det er den, du skal bruge til øst/vest-versioner, der deler en guide.</string>
     <string name="settings_epg_offset_dialog_description">Flytter alle programmer i programguiden. Brug den, når hele feedet har forkert klokkeslæt; for en enkelt kanal (en øst/vest-version, der deler én guide) skal du trykke længe på kanalen i live-tv eller programguiden og angive dens egen tidsforskydning der.</string>
-    <string name="settings_panel_width_screen_description">Angiv, hvor meget af skærmen hvert panel fylder – kategorier, listen og forhåndsvisningen.</string>
-    <string name="settings_panel_width_summary">Kategori <xliff:g id="category">%1$d</xliff:g>%% · Liste <xliff:g id="list">%2$d</xliff:g>%% · <xliff:g id="preview_label">%3$s</xliff:g> <xliff:g id="preview">%4$d</xliff:g>%%</string>
-    <string name="settings_panel_width_help">• De tre paneler deler én række, så deres procenter tilsammen skal give 100 %%.\n• Gør du ét panel bredere, skal du trække samme mængde fra et andet, før du kan gemme.\n• Nulstil sætter en sektion tilbage til de standardbredder, som denne skærm startede med.\n• Hvis du slår en sektion fra, gendannes dens standardlayout, uden at dine værdier går tabt.\n• Film- og serieplakater ombrydes automatisk, så en smallere liste bare viser færre pr. række.</string>
-    <string name="settings_panel_width_preview">Forhåndsvisning</string>
-    <string name="settings_panel_width_poster">Plakat</string>
-    <string name="settings_panel_width_dialog_title"><xliff:g id="section">%1$s</xliff:g>-panelbredder</string>
-    <string name="settings_panel_width_customize">Tilpas panelet</string>
-    <string name="settings_panel_width_category">Kategoripanel</string>
-    <string name="settings_panel_width_list">Listepanel</string>
-    <string name="settings_panel_width_preview_panel"><xliff:g id="label">%1$s</xliff:g>-panel</string>
-    <string name="settings_panel_width_total">Samlet størrelse</string>
-    <string name="settings_panel_width_invalid_total">Den samlede størrelse er <xliff:g id="total">%1$d</xliff:g>%%. Den skal være 100 %% – justér den venligst.</string>
     <string name="settings_language_help_translate">Hjælp med at oversætte OwnTV til dit sprog</string>
     <string name="settings_language_contribution_description">Scan QR-koden, eller åbn linket for at vælge et hvilket som helst tilgængeligt sprog og bidrage på tværs af alle seks OwnTV-oversættelseskomponenter.</string>
     <string name="settings_language_contribution_qr_description">QR-kode til OwnTV-oversættelsesprojektets oversigt</string>
@@ -989,10 +974,6 @@
     <string name="settings_auto_frame_rate_turn_on_anyway">Slå til alligevel</string>
     <string name="settings_language_request_workflow">Vil du tilføje et sprog, der ikke er på listen? Åbn først en sprogforespørgsel. En vedligeholder registrerer det og forbereder de grundlæggende oversættelsesfiler; når det dukker op på Hosted Weblate, kan du begynde at bidrage.</string>
     <string name="settings_language_request_new">Anmod om et nyt sprog</string>
-    <string name="settings_panel_width_disable_preview_title">Slå video i direkte forhåndsvisning fra?</string>
-    <string name="settings_panel_width_disable_preview_description">Video i direkte forhåndsvisning er slået til i øjeblikket. Hvis du skjuler forhåndsvisningspanelet, slås videoen fra, og den kan ikke slås til igen, før du angiver en bredde for forhåndsvisningspanelet under Justering af panelbredde.</string>
-    <string name="settings_live_preview_panel_hidden_title">Video i direkte forhåndsvisning er ikke tilgængelig</string>
-    <string name="settings_live_preview_panel_hidden_description">Forhåndsvisningspanelet for Direkte TV er skjult. Angiv en bredde på over 0%% under Justering af panelbredde, før du slår video i forhåndsvisningen til.</string>
     <string name="settings_font_customization">Tilpasning af skrifttype</string>
     <string name="settings_font_customization_description">Tekststørrelse og skrifttyper til hovedfladen og pop op-vinduer</string>
     <string name="settings_font_size">Skriftstørrelse</string>

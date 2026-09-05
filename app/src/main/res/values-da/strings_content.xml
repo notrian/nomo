@@ -193,14 +193,8 @@
     <string name="content_subtitle_select_file">Vælg lokal undertekstfil</string>
     <string name="content_subtitle_load_failed">Undertekstfilen kunne ikke indlæses.</string>
     <string name="content_history">Historik</string>
-    <string name="content_all_playlists">Alle afspilningslister</string>
     <string name="content_search_categories">Søg i kategorier…</string>
     <string name="content_no_categories_match">Ingen kategorier matcher</string>
-    <string name="content_action_resume">Fortsæt</string>
-    <string name="content_action_play">Afspil</string>
-    <string name="content_action_next_up">Næste</string>
-    <string name="content_action_last_channel">Seneste kanal</string>
-    <string name="content_continue_label"><xliff:g id="action">%1$s</xliff:g> · <xliff:g id="name">%2$s</xliff:g></string>
     <string name="content_empty_section"><xliff:g id="section">%1$s</xliff:g> kommer i en senere fase. Tilføj en M3U- eller Xtream-kilde for at udfylde denne liste.</string>
     <string name="content_progress_percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
     <string name="content_section_category"><xliff:g id="section">%1$s</xliff:g> / <xliff:g id="category">%2$s</xliff:g></string>

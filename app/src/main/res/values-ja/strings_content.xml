@@ -186,14 +186,8 @@
     <string name="content_subtitle_select_file">ローカルの字幕ファイルを選択</string>
     <string name="content_subtitle_load_failed">字幕ファイルを読み込めませんでした。</string>
     <string name="content_history">視聴履歴</string>
-    <string name="content_all_playlists">すべてのプレイリスト</string>
     <string name="content_search_categories">カテゴリを検索…</string>
     <string name="content_no_categories_match">一致するカテゴリはありません</string>
-    <string name="content_action_resume">再開</string>
-    <string name="content_action_play">再生</string>
-    <string name="content_action_next_up">次に再生</string>
-    <string name="content_action_last_channel">前回のチャンネル</string>
-    <string name="content_continue_label"><xliff:g id="action">%1$s</xliff:g> · <xliff:g id="name">%2$s</xliff:g></string>
     <string name="content_empty_section"><xliff:g id="section">%1$s</xliff:g>は今後の段階で追加されます。この一覧にコンテンツを表示するには、M3UまたはXtreamソースを追加してください。</string>
     <string name="content_progress_percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
     <string name="content_section_category"><xliff:g id="section">%1$s</xliff:g> / <xliff:g id="category">%2$s</xliff:g></string>

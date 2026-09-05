@@ -980,10 +980,7 @@
     <string name="settings_surround_auto_description">Auto – zkusí prostorový zvuk Dolby/DTS a automaticky přepne zpět na stereo, pokud ho televize nebo soundbar nepřehraje. Doporučeno.</string>
     <string name="settings_surround_stereo_description">Pouze stereo – vždy dekódujte v aplikaci a posílejte čistý zvuk 2.0. Použijte to u reproduktorů televize nebo stereo soundbaru, případně pokud zvuk zaostává za obrazem.</string>
     <string name="settings_surround_forced_description">Prostorový zvuk – posílejte Dolby/DTS do skutečného přijímače 5.1/7.1. Pokud ztichne nebo se zadrhává, OwnTV se i tak vrátí ke stereu a dá vám vědět.</string>
-    <string name="settings_panel_width">Úprava šířky panelů</string>
-    <string name="settings_panel_width_description">Změňte velikost panelů kategorií, seznamu a náhledu v Živé TV, filmech a seriálech.</string>
     <string name="settings_search_keywords_epg_offset">epg průvodce časový posun posun časové pásmo východ západ hodiny</string>
-    <string name="settings_search_keywords_panel_width">panel šířka velikost změna velikosti kategorie seznam náhled plakát sloupcové rozložení živá filmy seriály</string>
     <string name="settings_search_keywords_live_preroll">přednačítání přednačíst načítání načítat před přehráváním opětovné načítání zadrhávání zamrznutí podle playlistu</string>
     <string name="settings_detailed_playback_logging">Podrobné protokolování přehrávání</string>
     <string name="settings_search_keywords_detailed_logging">diagnostika podrobný trasování logcat ladění hlášení chyba živé vysílání engine</string>
@@ -998,18 +995,6 @@
     <string name="settings_video_seconds"><xliff:g id="seconds">%1$d</xliff:g> s videa</string>
     <string name="settings_epg_offset_root_description">Posune celého průvodce, když časy zdroje neodpovídají tomu, co se skutečně vysílá. Jednotlivý kanál lze posunout samostatně z nabídky po dlouhém stisknutí (Živá TV nebo Průvodce) – to je určeno pro východní/západní verze sdílející jednoho průvodce.</string>
     <string name="settings_epg_offset_dialog_description">Posune každý pořad v průvodci. Použijte, když má celý zdroj špatně nastavený čas; pro jednotlivý kanál (východní/západní verze sdílející jednoho průvodce) podržte kanál v Živé TV nebo v Průvodci a nastavte mu tam vlastní posun.</string>
-    <string name="settings_panel_width_screen_description">Nastavte, jak velkou část obrazovky každý panel zabírá – kategorie, seznam položek a náhled.</string>
-    <string name="settings_panel_width_summary">Kategorie <xliff:g id="category">%1$d</xliff:g>%% · Seznam <xliff:g id="list">%2$d</xliff:g>%% · <xliff:g id="preview_label">%3$s</xliff:g> <xliff:g id="preview">%4$d</xliff:g>%%</string>
-    <string name="settings_panel_width_help">• Tři panely sdílejí jeden řádek, takže jejich procenta musí dohromady činit 100 %%.\n• Rozšíříte-li jeden panel, musíte před uložením stejnou část odebrat jinému panelu.\n• Reset vrátí sekci na standardní šířky, se kterými tato obrazovka začínala.\n• Vypnutí sekce obnoví její standardní rozložení, aniž byste přišli o své hodnoty.\n• Plakáty filmů a seriálů se automaticky přeskupí, takže užší seznam prostě zobrazí méně položek na řádek.</string>
-    <string name="settings_panel_width_preview">Náhled</string>
-    <string name="settings_panel_width_poster">Plakát</string>
-    <string name="settings_panel_width_dialog_title">Šířky panelů – <xliff:g id="section">%1$s</xliff:g></string>
-    <string name="settings_panel_width_customize">Přizpůsobit panel</string>
-    <string name="settings_panel_width_category">Panel kategorií</string>
-    <string name="settings_panel_width_list">Panel seznamu</string>
-    <string name="settings_panel_width_preview_panel">Panel <xliff:g id="label">%1$s</xliff:g></string>
-    <string name="settings_panel_width_total">Celková velikost</string>
-    <string name="settings_panel_width_invalid_total">Celková velikost je <xliff:g id="total">%1$d</xliff:g>%%. Musí být 100 %% – upravte ji prosím.</string>
     <string name="settings_language_help_translate">Pomozte přeložit OwnTV do vašeho jazyka</string>
     <string name="settings_language_contribution_description">Naskenujte QR kód nebo otevřete odkaz, zvolte libovolný dostupný jazyk a přispějte ve všech šesti překladových komponentách OwnTV.</string>
     <string name="settings_language_contribution_qr_description">QR kód pro přehled překladatelského projektu OwnTV</string>
@@ -1025,10 +1010,6 @@
     <string name="settings_auto_frame_rate_turn_on_anyway">Přesto zapnout</string>
     <string name="settings_language_request_workflow">Chcete přidat jazyk, který není v seznamu? Nejprve otevřete žádost o jazyk. Správce jej zaregistruje a připraví základní soubory překladů; jakmile se objeví na Hosted Weblate, můžete začít přispívat.</string>
     <string name="settings_language_request_new">Požádat o nový jazyk</string>
-    <string name="settings_panel_width_disable_preview_title">Vypnout video živého náhledu?</string>
-    <string name="settings_panel_width_disable_preview_description">Video živého náhledu je momentálně zapnuté. Skrytím panelu náhledu se video vypne a nebude možné je znovu zapnout, dokud panelu náhledu nenastavíte šířku v části Úprava šířky panelu.</string>
-    <string name="settings_live_preview_panel_hidden_title">Video živého náhledu není k dispozici</string>
-    <string name="settings_live_preview_panel_hidden_description">Panel náhledu živého vysílání je skrytý. Než zapnete video náhledu, nastavte mu v části Úprava šířky panelu šířku větší než 0 %%.</string>
     <string name="settings_font_customization">Přizpůsobení písma</string>
     <string name="settings_font_customization_description">Velikost textu a písma hlavního rozhraní a vyskakovacích oken</string>
     <string name="settings_font_size">Velikost písma</string>

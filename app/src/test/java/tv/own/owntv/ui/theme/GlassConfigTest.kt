@@ -174,7 +174,7 @@ class GlassConfigTest {
             GlassSurface.DIALOGS.material,
         )
         assertEquals(
-            GlassMaterial(0.04f, 0.24f, 0.15f, 0.34f, 0.72f, 0.22f, GlassDepth.CHROME, true),
+            GlassMaterial(0.02f, 0.18f, 0.15f, 0.34f, 0.72f, 0.22f, GlassDepth.CHROME, true),
             GlassSurface.TOPBAR.material,
         )
         assertEquals(GlassSurface.TOPBAR.material, GlassSurface.SIDEBAR.material)

@@ -193,14 +193,8 @@
     <string name="content_subtitle_select_file">Lokaal ondertitelingsbestand selecteren</string>
     <string name="content_subtitle_load_failed">Kan het ondertitelingsbestand niet laden.</string>
     <string name="content_history">Kijkgeschiedenis</string>
-    <string name="content_all_playlists">Alle afspeellijsten</string>
     <string name="content_search_categories">Categorieën zoeken…</string>
     <string name="content_no_categories_match">Geen overeenkomende categorieën</string>
-    <string name="content_action_resume">Hervatten</string>
-    <string name="content_action_play">Afspelen</string>
-    <string name="content_action_next_up">Hierna</string>
-    <string name="content_action_last_channel">Laatste zender</string>
-    <string name="content_continue_label"><xliff:g id="action">%1$s</xliff:g> · <xliff:g id="name">%2$s</xliff:g></string>
     <string name="content_empty_section"><xliff:g id="section">%1$s</xliff:g> komt in een latere fase. Voeg een M3U- of Xtream-bron toe om deze lijst te vullen.</string>
     <string name="content_progress_percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
     <string name="content_section_category"><xliff:g id="section">%1$s</xliff:g> / <xliff:g id="category">%2$s</xliff:g></string>

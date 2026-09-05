@@ -200,14 +200,8 @@
     <string name="content_subtitle_select_file">Sélectionner un fichier de sous-titres local</string>
     <string name="content_subtitle_load_failed">Impossible de charger le fichier de sous-titres.</string>
     <string name="content_history">Historique</string>
-    <string name="content_all_playlists">Toutes les listes de lecture</string>
     <string name="content_search_categories">Rechercher des catégories…</string>
     <string name="content_no_categories_match">Aucune catégorie correspondante</string>
-    <string name="content_action_resume">Reprendre</string>
-    <string name="content_action_play">Lire</string>
-    <string name="content_action_next_up">À suivre</string>
-    <string name="content_action_last_channel">Dernière chaîne</string>
-    <string name="content_continue_label"><xliff:g id="action">%1$s</xliff:g> · <xliff:g id="name">%2$s</xliff:g></string>
     <string name="content_empty_section"><xliff:g id="section">%1$s</xliff:g> sera disponible ultérieurement. Ajoutez une source M3U ou Xtream pour alimenter cette liste.</string>
     <string name="content_progress_percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
     <string name="content_section_category"><xliff:g id="section">%1$s</xliff:g> / <xliff:g id="category">%2$s</xliff:g></string>

@@ -193,14 +193,8 @@
     <string name="content_subtitle_select_file">स्थानीय सबटाइटल फ़ाइल चुनें</string>
     <string name="content_subtitle_load_failed">सबटाइटल फ़ाइल लोड नहीं की जा सकी।</string>
     <string name="content_history">देखने का इतिहास</string>
-    <string name="content_all_playlists">सभी playlists</string>
     <string name="content_search_categories">categories खोजें…</string>
     <string name="content_no_categories_match">कोई categories मेल नहीं खातीं</string>
-    <string name="content_action_resume">जारी रखें</string>
-    <string name="content_action_play">चलाएँ</string>
-    <string name="content_action_next_up">अगला</string>
-    <string name="content_action_last_channel">पिछला चैनल</string>
-    <string name="content_continue_label"><xliff:g id="action">%1$s</xliff:g> · <xliff:g id="name">%2$s</xliff:g></string>
     <string name="content_empty_section"><xliff:g id="section">%1$s</xliff:g> की सुविधा बाद के चरण में उपलब्ध होगी। इस सूची में सामग्री भरने के लिए M3U या Xtream स्रोत जोड़ें।</string>
     <string name="content_progress_percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
     <string name="content_section_category"><xliff:g id="section">%1$s</xliff:g> / <xliff:g id="category">%2$s</xliff:g></string>

@@ -944,10 +944,7 @@
     <string name="settings_surround_auto_description">Auto — Dolby/DTS-Surround ausprobieren und automatisch wieder zu Stereo wechseln, wenn der Fernseher oder die Soundbar den Ton nicht wiedergeben kann. Empfohlen.</string>
     <string name="settings_surround_stereo_description">Nur Stereo — immer in der App dekodieren und reinen 2.0-Ton ausgeben. Verwende diese Option bei TV-Lautsprechern oder einer Stereo-Soundbar oder wenn der Ton dem Bild hinterherhinkt.</string>
     <string name="settings_surround_forced_description">Surround — Dolby/DTS an einen echten 5.1/7.1-Receiver ausgeben. Wenn der Ton ausfällt oder ruckelt, wechselt OwnTV trotzdem zu Stereo und informiert dich.</string>
-    <string name="settings_panel_width">Panelbreite anpassen</string>
-    <string name="settings_panel_width_description">Die Kategorie-, Listen- und Vorschau-Panels für Live-TV sowie Filme &amp; Serien in der Größe ändern.</string>
     <string name="settings_search_keywords_epg_offset">epg programmführer zeitversatz verschieben zeitzone ost west stunden</string>
-    <string name="settings_search_keywords_panel_width">panelbreite größe ändern anpassen kategorie liste vorschau poster spalte layout live-tv filme serien</string>
     <string name="settings_search_keywords_live_preroll">vorpuffern vorpuffer vorabpuffer pufferung puffer vor der wiedergabe nachpuffern ruckler einfrieren pro playlist</string>
     <string name="settings_detailed_playback_logging">Detaillierte Wiedergabeprotokollierung</string>
     <string name="settings_search_keywords_detailed_logging">diagnose ausführlich trace logcat debug bericht fehler live-engine</string>
@@ -962,18 +959,6 @@
     <string name="settings_video_seconds"><xliff:g id="seconds">%1$d</xliff:g> s Videomaterial</string>
     <string name="settings_epg_offset_root_description">Den gesamten Programmführer verschieben, wenn die Zeiten eines Feeds nicht mit dem tatsächlich laufenden Programm übereinstimmen. Ein einzelner Sender kann über sein Menü, das sich durch langes Drücken öffnet (Live-TV oder Programmführer), separat verschoben werden – das ist die Einstellung für Ost-/West-Versionen, die einen Programmführer gemeinsam nutzen.</string>
     <string name="settings_epg_offset_dialog_description">Verschiebt jede Sendung im Programmführer. Verwende die Option, wenn der gesamte Feed eine falsche Uhrzeit verwendet; bei einem einzelnen Sender (einer Ost-/West-Version mit gemeinsamem Programmführer) halte den Sender in Live-TV oder im Programmführer lange gedrückt und stelle dort seinen eigenen Zeitversatz ein.</string>
-    <string name="settings_panel_width_screen_description">Festlegen, wie viel Platz jedes Panel auf dem Bildschirm einnimmt – Kategorien, Elementliste und Vorschau.</string>
-    <string name="settings_panel_width_summary">Kategorie <xliff:g id="category">%1$d</xliff:g> %% · Liste <xliff:g id="list">%2$d</xliff:g> %% · <xliff:g id="preview_label">%3$s</xliff:g> <xliff:g id="preview">%4$d</xliff:g> %%</string>
-    <string name="settings_panel_width_help">• Die drei Panels teilen sich eine Zeile, daher müssen ihre Prozentwerte zusammen 100 %% ergeben.\n• Wenn du ein Panel verbreiterst, musst du vor dem Speichern denselben Betrag von einem anderen Panel abziehen.\n• Mit „Zurücksetzen“ wird ein Bereich auf die ursprünglichen Standardbreiten dieses Bildschirms zurückgesetzt.\n• Wenn du einen Bereich deaktivierst, wird das Standardlayout wiederhergestellt, ohne dass deine Werte verloren gehen.\n• Die Poster von Filmen und Serien werden automatisch neu angeordnet, sodass eine schmalere Liste einfach weniger Poster pro Zeile anzeigt.</string>
-    <string name="settings_panel_width_preview">Vorschau</string>
-    <string name="settings_panel_width_poster">Poster</string>
-    <string name="settings_panel_width_dialog_title"><xliff:g id="section">%1$s</xliff:g> Panelbreiten</string>
-    <string name="settings_panel_width_customize">Panel anpassen</string>
-    <string name="settings_panel_width_category">Kategorie-Panel</string>
-    <string name="settings_panel_width_list">Listen-Panel</string>
-    <string name="settings_panel_width_preview_panel"><xliff:g id="label">%1$s</xliff:g> Panel</string>
-    <string name="settings_panel_width_total">Gesamtgröße</string>
-    <string name="settings_panel_width_invalid_total">Die Gesamtgröße beträgt <xliff:g id="total">%1$d</xliff:g> %%. Sie muss 100 %% betragen – bitte anpassen.</string>
     <string name="settings_language_help_translate">Hilf mit, OwnTV in deine Sprache zu übersetzen</string>
     <string name="settings_language_contribution_description">Scannen Sie den QR-Code oder öffnen Sie den Link, um eine beliebige verfügbare Sprache auszuwählen und in allen sechs Übersetzungsbereichen von OwnTV mitzuwirken.</string>
     <string name="settings_language_contribution_qr_description">QR-Code für die Übersicht des OwnTV-Übersetzungsprojekts</string>
@@ -989,10 +974,6 @@
     <string name="settings_auto_frame_rate_turn_on_anyway">Trotzdem aktivieren</string>
     <string name="settings_language_request_workflow">Möchtest du eine Sprache hinzufügen, die nicht aufgeführt ist? Stelle zuerst eine Sprachanfrage. Ein Maintainer registriert sie und bereitet die Basis-Übersetzungsdateien vor; sobald sie auf Hosted Weblate erscheint, kannst du mit dem Übersetzen beginnen.</string>
     <string name="settings_language_request_new">Neue Sprache anfordern</string>
-    <string name="settings_panel_width_disable_preview_title">Video der Live-Vorschau ausschalten?</string>
-    <string name="settings_panel_width_disable_preview_description">Das Video der Live-Vorschau ist derzeit eingeschaltet. Wenn Sie das Vorschau-Panel ausblenden, wird das Video ausgeschaltet. Es kann erst wieder eingeschaltet werden, nachdem Sie dem Vorschau-Panel unter „Anpassung der Panelbreite“ eine Breite zugewiesen haben.</string>
-    <string name="settings_live_preview_panel_hidden_title">Video der Live-Vorschau ist nicht verfügbar</string>
-    <string name="settings_live_preview_panel_hidden_description">Das Vorschau-Panel für Live-TV ist ausgeblendet. Weisen Sie ihm unter „Anpassung der Panelbreite“ eine Breite von mehr als 0%% zu, bevor Sie das Vorschauvideo einschalten.</string>
     <string name="settings_font_customization">Schrift anpassen</string>
     <string name="settings_font_customization_description">Textgröße und Schriften für Hauptoberfläche und Pop-ups</string>
     <string name="settings_font_size">Schriftgröße</string>

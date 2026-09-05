@@ -962,10 +962,7 @@
     <string name="settings_surround_auto_description">Auto — prova il surround Dolby/DTS e torna automaticamente allo stereo se la TV o la soundbar non lo riproducono. Consigliato.</string>
     <string name="settings_surround_stereo_description">Solo stereo — decodifica sempre nell\'app e invia un normale audio stereo 2.0. Usa questa opzione con gli altoparlanti della TV o una soundbar stereo, oppure se l\'audio è in ritardo rispetto all\'immagine.</string>
     <string name="settings_surround_forced_description">Surround — invia Dolby/DTS a un vero ricevitore 5.1/7.1. Se l\'audio va in muto o ha degli intoppi, OwnTV torna comunque allo stereo e te lo segnala.</string>
-    <string name="settings_panel_width">Regolazione larghezza pannelli</string>
-    <string name="settings_panel_width_description">Ridimensiona i pannelli di categoria, elenco e anteprima in TV in diretta, Film e Serie TV.</string>
     <string name="settings_search_keywords_epg_offset">EPG guida tempo offset sposta spostamento fuso orario est ovest ore</string>
-    <string name="settings_search_keywords_panel_width">larghezza pannello dimensione ridimensiona categoria elenco anteprima poster colonna layout diretta film serie tv</string>
     <string name="settings_search_keywords_live_preroll">prebuffer preroll pre-roll buffering buffer prima della riproduzione rebuffer intoppo freeze per playlist</string>
     <string name="settings_detailed_playback_logging">Registrazione dettagliata della riproduzione</string>
     <string name="settings_search_keywords_detailed_logging">diagnostica dettagliata verbose trace logcat debug report bug motore live</string>
@@ -980,18 +977,6 @@
     <string name="settings_video_seconds"><xliff:g id="seconds">%1$d</xliff:g>s di video</string>
     <string name="settings_epg_offset_root_description">Sposta l\'intera guida quando gli orari di un feed non corrispondono a ciò che è effettivamente in onda. Un singolo canale può essere spostato singolarmente dal suo menu con pressione prolungata (TV in diretta o Guida): è questa la voce per le versioni East/West che condividono una guida.</string>
     <string name="settings_epg_offset_dialog_description">Sposta ogni programma nella guida. Usalo quando l\'intero feed ha l\'orario sbagliato; per un singolo canale (una versione East/West che condivide una guida), tieni premuto il canale in TV in diretta o nella Guida e imposta lì il suo offset.</string>
-    <string name="settings_panel_width_screen_description">Imposta quanto spazio dello schermo occupa ogni pannello: categorie, elenco elementi e anteprima.</string>
-    <string name="settings_panel_width_summary">Categoria <xliff:g id="category">%1$d</xliff:g>%% · Elenco <xliff:g id="list">%2$d</xliff:g>%% · <xliff:g id="preview_label">%3$s</xliff:g> <xliff:g id="preview">%4$d</xliff:g>%%</string>
-    <string name="settings_panel_width_help">• I tre pannelli condividono una riga, quindi le loro percentuali devono sommarsi al 100%%.\n• Se allarghi un pannello, devi togliere la stessa quantità da un altro prima di salvare.\n• Il pulsante Ripristina riporta una sezione alle larghezze standard con cui è stata aperta questa schermata.\n• Disattivare una sezione ripristina il layout standard senza perdere i tuoi valori.\n• I poster di film e serie TV si riorganizzano automaticamente, quindi un elenco più stretto mostra semplicemente meno elementi per riga.</string>
-    <string name="settings_panel_width_preview">Anteprima</string>
-    <string name="settings_panel_width_poster">Poster</string>
-    <string name="settings_panel_width_dialog_title"><xliff:g id="section">%1$s</xliff:g>: larghezze pannelli</string>
-    <string name="settings_panel_width_customize">Personalizza pannello</string>
-    <string name="settings_panel_width_category">Pannello categoria</string>
-    <string name="settings_panel_width_list">Pannello elenco</string>
-    <string name="settings_panel_width_preview_panel">Pannello <xliff:g id="label">%1$s</xliff:g></string>
-    <string name="settings_panel_width_total">Dimensione totale</string>
-    <string name="settings_panel_width_invalid_total">La dimensione totale è <xliff:g id="total">%1$d</xliff:g>%%. Deve essere pari al 100%%: correggi i valori.</string>
     <string name="settings_language_help_translate">Aiutaci a tradurre OwnTV nella tua lingua</string>
     <string name="settings_language_contribution_description">Scansiona il codice QR oppure apri il link per scegliere una qualsiasi lingua disponibile e contribuire a tutti e sei i componenti di traduzione di OwnTV.</string>
     <string name="settings_language_contribution_qr_description">Codice QR della panoramica del progetto di traduzione di OwnTV</string>
@@ -1007,10 +992,6 @@
     <string name="settings_auto_frame_rate_turn_on_anyway">Attiva comunque</string>
     <string name="settings_language_request_workflow">Vuoi aggiungere una lingua che non è elencata? Apri prima una richiesta di lingua. Un maintainer la registrerà e preparerà i file di traduzione di base; una volta che appare su Hosted Weblate, puoi iniziare a contribuire.</string>
     <string name="settings_language_request_new">Richiedi una nuova lingua</string>
-    <string name="settings_panel_width_disable_preview_title">Disattivare il video di anteprima in diretta?</string>
-    <string name="settings_panel_width_disable_preview_description">Il video di anteprima in diretta è attualmente attivo. Nascondendo il pannello Anteprima, il video verrà disattivato e non potrà essere riattivato finché non assegnerai una larghezza al pannello Anteprima in Regolazione larghezza pannelli.</string>
-    <string name="settings_live_preview_panel_hidden_title">Il video di anteprima in diretta non è disponibile</string>
-    <string name="settings_live_preview_panel_hidden_description">Il pannello di anteprima della TV in diretta è nascosto. Assegnagli una larghezza superiore allo 0%% in Regolazione larghezza pannelli prima di attivare il video di anteprima.</string>
     <string name="settings_font_customization">Personalizzazione dei caratteri</string>
     <string name="settings_font_customization_description">Dimensione del testo e caratteri dell’interfaccia principale e dei popup</string>
     <string name="settings_font_size">Dimensione carattere</string>

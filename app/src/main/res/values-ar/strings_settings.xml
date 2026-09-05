@@ -1016,10 +1016,7 @@
     <string name="settings_surround_auto_description">تلقائي — جرّب صوت Dolby/DTS المحيطي، وارجع إلى الستيريو تلقائيًا إذا لم يشغّله التلفزيون أو شريط الصوت. موصى به.</string>
     <string name="settings_surround_stereo_description">ستيريو فقط — فكّ الترميز دائمًا داخل التطبيق وأرسل صوت 2.0 عاديًا. استخدم هذا مع مكبرات صوت التلفزيون أو شريط ستيريو، أو إذا تأخر الصوت خلف الصورة.</string>
     <string name="settings_surround_forced_description">صوت محيطي — أرسل Dolby/DTS إلى مستقبل 5.1/7.1 حقيقي. إذا انقطع الصوت أو تذبذب، يعود OwnTV إلى الستيريو ويخبرك.</string>
-    <string name="settings_panel_width">ضبط عرض اللوحة</string>
-    <string name="settings_panel_width_description">غيّر حجم لوحات الفئة والقائمة والمعاينة في تلفزيون مباشر والأفلام والمسلسلات.</string>
     <string name="settings_search_keywords_epg_offset">دليل البرامج الإلكتروني دليل البرامج إزاحة الوقت تحويل المنطقة الزمنية شرق غرب ساعات</string>
-    <string name="settings_search_keywords_panel_width">عرض اللوحة الحجم تغيير الحجم الفئة القائمة المعاينة الملصق العمود التخطيط مباشر أفلام مسلسلات</string>
     <string name="settings_search_keywords_live_preroll">تخزين مسبق تمهيد مسبق تخزين مؤقت قبل التشغيل إعادة التخزين المؤقت توقف تجمد لكل قائمة تشغيل</string>
     <string name="settings_detailed_playback_logging">تسجيل مفصّل للتشغيل</string>
     <string name="settings_search_keywords_detailed_logging">تشخيصات مطوّل تتبع سجل النظام تصحيح أخطاء تقرير خطأ محرك البث المباشر</string>
@@ -1034,18 +1031,6 @@
     <string name="settings_video_seconds"><xliff:g id="seconds">%1$d</xliff:g> ث من الفيديو</string>
     <string name="settings_epg_offset_root_description">انقل الدليل بأكمله عندما لا تتطابق أوقات التغذية مع ما يُعرض فعليًا. يمكن إزاحة قناة واحدة بمفردها من قائمة الضغط المطوّل عليها (في تلفزيون مباشر أو الدليل) — وهذا هو الخيار المناسب للنسخ الشرقية/الغربية التي تشترك في دليل واحد.</string>
     <string name="settings_epg_offset_dialog_description">ينقل كل برنامج في الدليل. استخدمه عندما تكون التغذية كلها على توقيت خاطئ؛ أما لقناة واحدة (نسخة شرقية/غربية تشترك في دليل واحد)، فاضغط مطوّلًا على القناة في تلفزيون مباشر أو الدليل وحدّد إزاحتها الخاصة هناك.</string>
-    <string name="settings_panel_width_screen_description">حدد مقدار مساحة الشاشة التي تشغلها كل لوحة — الفئات، وقائمة العناصر، والمعاينة.</string>
-    <string name="settings_panel_width_summary">الفئة <xliff:g id="category">%1$d</xliff:g>%% · القائمة <xliff:g id="list">%2$d</xliff:g>%% · <xliff:g id="preview_label">%3$s</xliff:g> <xliff:g id="preview">%4$d</xliff:g>%%</string>
-    <string name="settings_panel_width_help">• اللوحات الثلاث تشترك في صف واحد، لذا يجب أن يكون مجموع نسبها 100%%.\n• إذا وسّعت لوحة، يجب أن تخصم المقدار نفسه من أخرى قبل الحفظ.\n• إعادة الضبط تعيد القسم إلى العروض القياسية التي بدأت بها هذه الشاشة.\n• إيقاف قسم يعيد تخطيطه القياسي دون فقدان قيمك.\n• تُعاد توزيع ملصقات الأفلام والمسلسلات تلقائيًا، لذا تعرض القائمة الأضيق عددًا أقل في كل صف.</string>
-    <string name="settings_panel_width_preview">معاينة</string>
-    <string name="settings_panel_width_poster">ملصق</string>
-    <string name="settings_panel_width_dialog_title"><xliff:g id="section">%1$s</xliff:g> عروض اللوحات</string>
-    <string name="settings_panel_width_customize">تخصيص اللوحة</string>
-    <string name="settings_panel_width_category">لوحة الفئة</string>
-    <string name="settings_panel_width_list">لوحة القائمة</string>
-    <string name="settings_panel_width_preview_panel"><xliff:g id="label">%1$s</xliff:g> لوحة</string>
-    <string name="settings_panel_width_total">الحجم الإجمالي</string>
-    <string name="settings_panel_width_invalid_total">الحجم الإجمالي هو <xliff:g id="total">%1$d</xliff:g>%%. يجب أن يكون 100%% — يرجى التعديل.</string>
     <string name="settings_language_help_translate">ساعد في ترجمة OwnTV إلى لغتك</string>
     <string name="settings_language_contribution_description">امسح رمز QR أو افتح الرابط لاختيار أي لغة متاحة والمساهمة في جميع مكونات ترجمة OwnTV الستة.</string>
     <string name="settings_language_contribution_qr_description">رمز QR لنظرة عامة على مشروع ترجمة OwnTV</string>
@@ -1061,10 +1046,6 @@
     <string name="settings_auto_frame_rate_turn_on_anyway">تفعيله على أي حال</string>
     <string name="settings_language_request_workflow">هل تريد إضافة لغة غير مدرجة؟ قدّم طلب لغة أولاً. سيقوم أحد المشرفين بتسجيلها وتجهيز ملفات الترجمة الأساسية؛ وبمجرد ظهورها على Hosted Weblate، يمكنك البدء في المساهمة.</string>
     <string name="settings_language_request_new">طلب لغة جديدة</string>
-    <string name="settings_panel_width_disable_preview_title">هل تريد إيقاف فيديو المعاينة المباشرة؟</string>
-    <string name="settings_panel_width_disable_preview_description">فيديو المعاينة المباشرة قيد التشغيل حاليًا. سيؤدي إخفاء لوحة المعاينة إلى إيقاف الفيديو، ولن يمكن تشغيله مرة أخرى حتى تحدد عرضًا للوحة المعاينة في ضبط عرض اللوحة.</string>
-    <string name="settings_live_preview_panel_hidden_title">فيديو المعاينة المباشرة غير متاح</string>
-    <string name="settings_live_preview_panel_hidden_description">لوحة معاينة البث التلفزيوني المباشر مخفية. حدّد لها عرضًا أكبر من 0%% في ضبط عرض اللوحة قبل تشغيل فيديو المعاينة.</string>
     <string name="settings_font_customization">تخصيص الخط</string>
     <string name="settings_font_customization_description">حجم النص وخطوط الواجهة الرئيسية والنوافذ المنبثقة</string>
     <string name="settings_font_size">حجم الخط</string>

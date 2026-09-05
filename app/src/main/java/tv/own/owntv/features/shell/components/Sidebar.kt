@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
@@ -79,6 +80,9 @@ fun Sidebar(
 ) {
     val colors = OwnTVTheme.colors
     var hasFocus by remember { mutableStateOf(false) }
+    // Invalidates a pending "commit" below whenever focus changes again before that commit runs —
+    // see the onFocusChanged doc comment.
+    var pendingFocusToken by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
 
     // Expands to show labels the moment focus is anywhere inside the rail; collapses to icon-only
@@ -115,10 +119,34 @@ fun Sidebar(
             .fillMaxHeight()
             .width(railWidth)
             .onFocusChanged {
-                val entered = it.hasFocus && !hasFocus
-                hasFocus = it.hasFocus
-                if (it.hasFocus) onFocused()
-                if (entered) scope.launch { runCatching { selectedItemFocusRequester.requestFocus() } }
+                // Losing focus is never delayed: collapse and stop reporting SIDEBAR immediately,
+                // and invalidate any pending "gained focus" commit below (see it for why).
+                if (!it.hasFocus) {
+                    pendingFocusToken++
+                    hasFocus = false
+                    return@onFocusChanged
+                }
+                // Elsewhere in the shell, unmounting or disabling the item that currently holds
+                // focus (a Detail page opening on Movies/Live, Series swapping its grid for the
+                // episode list on either side of a show) can dump real focus into the rail for a
+                // stray moment before the intended destination claims it — see the "focus dies and
+                // falls to the sidebar" comments next to those screens' own back/forward focus
+                // hand-offs. A stray visit like that used to play the rail's full expand animation
+                // and dim the content before self-correcting, reading as "the sidebar tries to open
+                // for no reason". Debounce it: wait a beat, then only commit to "the rail is
+                // genuinely focused" (expand, dim via onFocused(), snap to the selected item) if
+                // nothing else has claimed focus in the meantime. A real Left-press entry holds
+                // focus far longer than this window, so deliberate navigation is unaffected; only
+                // the reveal is delayed by an imperceptible beat, not the underlying focus move.
+                val token = ++pendingFocusToken
+                scope.launch {
+                    delay(120)
+                    if (pendingFocusToken != token) return@launch
+                    val entered = !hasFocus
+                    hasFocus = true
+                    onFocused()
+                    if (entered) runCatching { selectedItemFocusRequester.requestFocus() }
+                }
             }
             .focusGroup(),
     ) {

@@ -504,6 +504,12 @@ fun LiveScreen(
                 if (!externalPlayerOn) onFullscreen()
             },
             onExit = { detailsChannel = null; if (previewEnabled) vm.stopPreview() },
+            // This window is a sibling drawn outside the pane Column above (whose onFocusChanged
+            // is what tells the shell "content, not the sidebar, has focus" — see ShellLayer in
+            // OwnTVShell). Without this, claiming real D-pad focus here never clears a stale
+            // SIDEBAR layer from a prior visit to the rail, so the shell's dimming scrim stays on
+            // over this page even after focus has genuinely returned to it.
+            modifier = Modifier.onFocusChanged { if (it.hasFocus) onChildFocused() },
         )
     }
 

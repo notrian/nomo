@@ -614,6 +614,11 @@ private fun SeriesGrid(
         tv.own.owntv.features.shell.components.MediaDetailsScreen(
             details = buildSeriesDetails(s, cache, metadataMode.tmdbWins),
             onExit = { detailsSeries = null },
+            // Sibling overlay drawn outside the pane Column whose onFocusChanged reports content
+            // focus to the shell (see the identical fix in MoviesScreen/LiveScreen) — without this,
+            // real focus landing here never clears a stale sidebar layer, leaving the dimming scrim
+            // stuck on even after focus has genuinely returned to this page.
+            modifier = Modifier.onFocusChanged { if (it.hasFocus) onChildFocused() },
         )
     }
 
@@ -1358,6 +1363,11 @@ private fun EpisodeView(
         tv.own.owntv.features.shell.components.MediaDetailsScreen(
             details = buildEpisodeDetails(ep, cache, metadataMode.tmdbWins),
             onExit = { detailsEpisode = null },
+            // Sibling overlay drawn outside the pane Column whose onFocusChanged reports content
+            // focus to the shell (see the identical fix in MoviesScreen/LiveScreen) — without this,
+            // real focus landing here never clears a stale sidebar layer, leaving the dimming scrim
+            // stuck on even after focus has genuinely returned to this page.
+            modifier = Modifier.onFocusChanged { if (it.hasFocus) onChildFocused() },
         )
     }
 
